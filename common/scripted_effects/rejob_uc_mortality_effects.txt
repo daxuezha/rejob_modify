@@ -1,0 +1,17 @@
+﻿rejob_uc_refresh_mortality = {
+	every_scope_state = {
+		limit = {
+			any_scope_building = {
+				is_building_type = building_gulag_unemployment_center
+			}
+		}
+		remove_modifier = rejob_uc_mortality_dynamic
+		if = {
+			limit = { rejob_uc_mortality_offset_effective != 0 }
+			add_modifier = {
+				name = rejob_uc_mortality_dynamic
+				multiplier = rejob_uc_mortality_offset_effective
+			}
+		}
+	}
+}

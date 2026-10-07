@@ -1,25 +1,25 @@
-building_gulag_logging = {
-	building_group = gulag_industry
+building_gulag_unemployment_center = {
+	building_group = gulag_unemployment_center
 	icon = "gfx/interface/icons/building_icons/logging_camp.dds"
 	city_type = city
 	levels_per_mesh = 5
-	
+
 	possible = {
-        owner = { 
-			is_player = yes 
+		owner = {
+			is_player = yes
 		}
 	}
-	
+
 	can_build_private = {
 		always = no
 	}
 
 	production_method_groups = {
-		gulag_camp
-		gulag_pop
-		gulag_migration
+		rejob_uc_camp
+		rejob_uc_pop
+		rejob_uc_migration
 	}
-	
+
 	required_construction = construction_cost_low
 	ownership_type = self
 	background = "gfx/interface/icons/building_icons/backgrounds/building_panel_bg_farming.dds"

@@ -1,15 +1,14 @@
-pm_Auschviking_shao = {
+pm_rejob_uc_shao = {
 	texture = "gfx/interface/icons/production_method_icons/blister_steel_process.dds"
 
 	building_modifiers = {
 		workforce_scaled = {
-		goods_input_coal_add = 200
-		goods_output_porcelain_add = 500
+			goods_input_coal_add = 200
+			goods_output_porcelain_add = 500
 		}
 		level_scaled = {
 		}
 		unscaled = {
-#			building_delicious_mortality_mult = 10
 		}
 	}
 
@@ -19,75 +18,71 @@ pm_Auschviking_shao = {
 
 	state_modifiers = {
 		unscaled = {
-			state_delicious_mortality_mult = 4
+			state_mortality_mult = 4
 		}
 	}
 }
 
-pm_gulag = {
+pm_rejob_uc_gulag = {
 	texture = "gfx/interface/icons/production_method_icons/machine_gunners.dds"
 
 	building_modifiers = {
 		workforce_scaled = {
-		goods_input_ammunition_add = 100
-		goods_input_small_arms_add = 100
-		goods_output_meat_add = 4000
+			goods_input_ammunition_add = 100
+			goods_input_small_arms_add = 100
+			goods_output_meat_add = 4000
 		}
 		level_scaled = {
 		}
 		unscaled = {
-#			building_delicious_mortality_mult = 10
 		}
 	}
 
 	state_modifiers = {
 		unscaled = {
-			state_delicious_mortality_mult = 4
+			state_mortality_mult = 4
 		}
 	}
 }
 
-pm_gulag_oil = {
+pm_rejob_uc_oil = {
 	texture = "gfx/interface/icons/production_method_icons/rotary_valve_engine.dds"
 
 	building_modifiers = {
 		workforce_scaled = {
-		goods_input_tools_add = 25
-		goods_input_electricity_add = 150
-		goods_input_engines_add = 25
-		goods_output_oil_add = 2000
+			goods_input_tools_add = 25
+			goods_input_electricity_add = 150
+			goods_input_engines_add = 25
+			goods_output_oil_add = 2000
 		}
 		level_scaled = {
 		}
 		unscaled = {
-#			building_delicious_mortality_mult = 10
 		}
 	}
 
 	required_input_goods = electricity
 
 	unlocking_technologies = {
-#		electrical_capacitors
 	}
 
 	state_modifiers = {
 		unscaled = {
-			state_delicious_mortality_mult = 4
+			state_mortality_mult = 4
 		}
 	}
 }
 
-pm_Auschviking_gas = {
+pm_rejob_uc_gas = {
 	texture = "gfx/interface/icons/mobilization_options/chemical_weapons.dds"
 
 	building_modifiers = {
 		workforce_scaled = {
-		goods_input_fertilizer_add = 200
+			goods_input_fertilizer_add = 200
 		}
 		level_scaled = {
 		}
 		unscaled = {
-#			building_delicious_mortality_mult = 4000
 		}
 	}
 
@@ -97,26 +92,20 @@ pm_Auschviking_gas = {
 
 	state_modifiers = {
 		unscaled = {
-			state_delicious_mortality_mult = 400
+			state_mortality_mult = 400
 		}
 	}
 }
 
-pm_Auschviking_gasking = {
+pm_rejob_uc_gasking = {
 	texture = "gfx/interface/icons/production_method_icons/chemical_weapons_specialists.dds"
 
 	building_modifiers = {
 		workforce_scaled = {
-		goods_input_engines_add = 100
-		goods_input_fertilizer_add = 2000
+			goods_input_engines_add = 100
+			goods_input_fertilizer_add = 2000
 		}
 		level_scaled = {
-			#building_employment_laborers_add = 1000000
-			#building_employment_machinists_add = 1000
-			#building_employment_engineers_add = 1000
-			#building_employment_soldiers_add = 100
-			#building_employment_officers_add = 100
-			#building_employment_bureaucrats_add = 100
 		}
 		unscaled = {
 		}
@@ -133,79 +122,43 @@ pm_Auschviking_gasking = {
 	}
 }
 
-pm_Auschviking_barbed_wire_fences = {
-	texture = "gfx/interface/icons/production_method_icons/barbed_wire_fencing.dds"
-	unlocking_technologies = {
-		field_works	
-	}	
+pm_rejob_uc_stop = {
+	texture = "gfx/interface/icons/production_method_icons/professional_bureaucrats.dds"
+
 	building_modifiers = {
 		workforce_scaled = {
-			goods_input_iron_add = 20
-	     	goods_output_clothes_add = 1000
+			goods_input_transportation_add = -200
+			goods_output_clothes_add = -1500
+			goods_output_luxury_clothes_add = -1000
+			goods_output_gold_add = -1000
+			goods_output_fine_art_add = -1000
 		}
-
 		level_scaled = {
-			building_employment_delicious_add = 200000
+			building_employment_aristocrats_add = -50000
+			building_employment_capitalists_add = -50000
 		}
 		unscaled = {
-#			building_delicious_mortality_mult = 8
-		}
-	}
-	
-	state_modifiers = {
-		workforce_scaled = {
-		}
-		unscaled = {
-			state_delicious_mortality_mult = 2
-		}
-	}
-}	
-
-pm_Auschviking_electric_fencing = {
-	texture = "gfx/interface/icons/production_method_icons/electric_fencing.dds"	
-	unlocking_technologies = {
-#		electrical_capacitors	
-	}
-	building_modifiers = {
-		workforce_scaled = {
-			goods_input_iron_add = 20
-			goods_input_electricity_add = 20
-	     	goods_output_clothes_add = 1500
-		}
-
-		level_scaled = {
-			building_employment_delicious_add = 400000
-		}
-		unscaled = {
-#			building_delicious_mortality_mult = 14
-			
 		}
 	}
 
 	state_modifiers = {
 		workforce_scaled = {
 		}
-		unscaled = {
-			state_delicious_mortality_mult = 4
-		}
 	}
-
-	required_input_goods = electricity
 }
 
-pm_gulag_labour = {
+pm_rejob_uc_labour = {
 	texture = "gfx/interface/icons/production_method_icons/no_luxury_clothes.dds"
 
 	building_modifiers = {
 		workforce_scaled = {
-		goods_input_wood_add = 20
-		goods_output_clothes_add = 750
+			goods_input_wood_add = 20
+			goods_output_clothes_add = 750
 		}
 		level_scaled = {
-			building_employment_delicious_add = 100000
+			building_employment_laborers_add = 100000
 		}
 		unscaled = {
-#			building_delicious_mortality_mult = 1
 		}
 	}
 
@@ -217,19 +170,74 @@ pm_gulag_labour = {
 		workforce_scaled = {
 		}
 		unscaled = {
-			state_delicious_mortality_mult = 1
+			state_mortality_mult = 1
 		}
 	}
 }
 
-pm_gulag_upper = {
+pm_rejob_uc_barbed_wire_fences = {
+	texture = "gfx/interface/icons/production_method_icons/barbed_wire_fencing.dds"
+
+	unlocking_technologies = {
+		field_works
+	}
+
+	building_modifiers = {
+		workforce_scaled = {
+			goods_input_iron_add = 20
+			goods_output_clothes_add = 1000
+		}
+		level_scaled = {
+			building_employment_laborers_add = 200000
+		}
+		unscaled = {
+		}
+	}
+
+	state_modifiers = {
+		workforce_scaled = {
+		}
+		unscaled = {
+			state_mortality_mult = 2
+		}
+	}
+}
+
+pm_rejob_uc_electric_fencing = {
+	texture = "gfx/interface/icons/production_method_icons/electric_fencing.dds"
+
+	building_modifiers = {
+		workforce_scaled = {
+			goods_input_iron_add = 20
+			goods_input_electricity_add = 20
+			goods_output_clothes_add = 1500
+		}
+		level_scaled = {
+			building_employment_laborers_add = 400000
+		}
+		unscaled = {
+		}
+	}
+
+	state_modifiers = {
+		workforce_scaled = {
+		}
+		unscaled = {
+			state_mortality_mult = 4
+		}
+	}
+
+	required_input_goods = electricity
+}
+
+pm_rejob_uc_upper = {
 	texture = "gfx/interface/icons/production_method_icons/craftsman_sewing.dds"
 
 	building_modifiers = {
 		workforce_scaled = {
-		goods_output_fine_art_add = 100
-		goods_output_luxury_clothes_add = 500
-		goods_output_gold_add = 1000
+			goods_output_fine_art_add = 100
+			goods_output_luxury_clothes_add = 500
+			goods_output_gold_add = 1000
 		}
 		level_scaled = {
 			building_employment_aristocrats_add = 50000
@@ -239,8 +247,6 @@ pm_gulag_upper = {
 			building_aristocrats_mortality_mult = 40
 			building_capitalists_mortality_mult = 40
 		}
-		workforce_scaled = {
-		}
 	}
 
 	state_modifiers = {
@@ -249,13 +255,14 @@ pm_gulag_upper = {
 		unscaled = {
 		}
 	}
+
 	country_modifiers = {
 		workforce_scaled = {
 		}
 	}
 }
 
-pm_gulag_local = {
+pm_rejob_uc_local = {
 	texture = "gfx/interface/icons/production_method_icons/no_rail_transport.dds"
 
 	building_modifiers = {
@@ -273,22 +280,22 @@ pm_gulag_local = {
 		}
 		unscaled = {
 			state_migration_pull_mult = -99
-# 			state_birth_rate_mult = -10
-#			state_assimilation_mult = -1000
 		}
 	}
-	
+
 	country_modifiers = {
 		workforce_scaled = {
 		}
 	}
 }
 
-pm_gulag_country = {
+pm_rejob_uc_country = {
 	texture = "gfx/interface/icons/production_method_icons/rail_transport.dds"
+
 	unlocking_technologies = {
-		railways	
+		railways
 	}
+
 	building_modifiers = {
 		workforce_scaled = {
 			goods_input_transportation_add = 200
@@ -305,7 +312,7 @@ pm_gulag_country = {
 		unscaled = {
 		}
 	}
-	
+
 	country_modifiers = {
 		workforce_scaled = {
 		}

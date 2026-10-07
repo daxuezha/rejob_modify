@@ -1,0 +1,38 @@
+﻿je_rejob_uc_mortality = {
+	icon = "gfx/interface/icons/event_icons/event_skull.dds"
+	group = je_group_internal_affairs
+
+	scripted_button = rejob_uc_mortality_plus_1000
+	scripted_button = rejob_uc_mortality_plus_100
+	scripted_button = rejob_uc_mortality_plus_10
+	scripted_button = rejob_uc_mortality_plus_1
+	scripted_button = rejob_uc_mortality_minus_1
+	scripted_button = rejob_uc_mortality_minus_10
+	scripted_button = rejob_uc_mortality_minus_100
+	scripted_button = rejob_uc_mortality_minus_1000
+	scripted_button = rejob_uc_mortality_reset
+
+	immediate = {
+		if = {
+			limit = { NOT = { has_variable = rejob_uc_mortality_offset } }
+			set_variable = {
+				name = rejob_uc_mortality_offset
+				value = 0
+			}
+		}
+		rejob_uc_refresh_mortality = yes
+	}
+
+	status_desc = {
+		desc = rejob_uc_mortality_status
+	}
+
+	on_monthly_pulse = {
+		effect = {
+			rejob_uc_refresh_mortality = yes
+		}
+	}
+
+	should_be_pinned_by_default_uninvolved_or_context = yes
+	weight = 10000
+}

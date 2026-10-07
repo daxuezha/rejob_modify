@@ -1,0 +1,35 @@
+rejob_uc_camp = {
+	texture = "gfx/interface/icons/generic_icons/mixed_icon_base.dds"
+	ai_selection = most_productive
+
+	production_methods = {
+		pm_rejob_uc_shao
+		pm_rejob_uc_gulag
+		pm_rejob_uc_oil
+		pm_rejob_uc_gas
+		pm_rejob_uc_gasking
+		pm_rejob_uc_stop
+	}
+}
+
+rejob_uc_pop = {
+	texture = "gfx/interface/icons/generic_icons/mixed_icon_base.dds"
+	ai_selection = most_productive
+
+	production_methods = {
+		pm_rejob_uc_labour
+		pm_rejob_uc_barbed_wire_fences
+		pm_rejob_uc_electric_fencing
+		pm_rejob_uc_upper
+	}
+}
+
+rejob_uc_migration = {
+	texture = "gfx/interface/icons/generic_icons/mixed_icon_base.dds"
+	ai_selection = most_productive
+
+	production_methods = {
+		pm_rejob_uc_local
+		pm_rejob_uc_country
+	}
+}

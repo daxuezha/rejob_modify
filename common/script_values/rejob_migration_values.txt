@@ -1,0 +1,12 @@
+﻿rejob_noncapital_unemployed_population_estimate = {
+	value = 0
+	every_scope_state = {
+		limit = {
+			is_capital = no
+		}
+		add = {
+			value = state_population
+			multiply = state_unemployment_rate
+		}
+	}
+}

@@ -1,0 +1,16 @@
+﻿rejob_migration_decision = {
+	is_shown = {
+		is_player = yes
+	}
+
+	possible = {
+		rejob_noncapital_unemployed_population_estimate > 0
+	}
+
+	when_taken = {
+		trigger_event = {
+			id = rejob_migration.1
+			popup = yes
+		}
+	}
+}

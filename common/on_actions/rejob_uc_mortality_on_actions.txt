@@ -1,0 +1,21 @@
+﻿on_monthly_pulse_country = {
+	on_actions = {
+		rejob_uc_mortality_monthly
+	}
+}
+
+rejob_uc_mortality_monthly = {
+	effect = {
+		if = {
+			limit = {
+				NOT = { has_journal_entry = je_rejob_uc_mortality }
+				any_scope_state = {
+					has_building = building_gulag_unemployment_center
+				}
+			}
+			add_journal_entry = {
+				type = je_rejob_uc_mortality
+			}
+		}
+	}
+}

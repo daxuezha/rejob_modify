@@ -1,0 +1,42 @@
+﻿# 州视角：该州再就业中心的生产方式固定死亡率之和
+rejob_uc_mortality_pm_base_in_state = {
+	value = 0
+	if = { limit = { any_scope_building = { is_building_type = building_gulag_unemployment_center has_active_production_method = pm_rejob_uc_shao } } add = 4 }
+	if = { limit = { any_scope_building = { is_building_type = building_gulag_unemployment_center has_active_production_method = pm_rejob_uc_gulag } } add = 4 }
+	if = { limit = { any_scope_building = { is_building_type = building_gulag_unemployment_center has_active_production_method = pm_rejob_uc_oil } } add = 4 }
+	if = { limit = { any_scope_building = { is_building_type = building_gulag_unemployment_center has_active_production_method = pm_rejob_uc_gas } } add = 400 }
+	if = { limit = { any_scope_building = { is_building_type = building_gulag_unemployment_center has_active_production_method = pm_rejob_uc_labour } } add = 1 }
+	if = { limit = { any_scope_building = { is_building_type = building_gulag_unemployment_center has_active_production_method = pm_rejob_uc_barbed_wire_fences } } add = 2 }
+	if = { limit = { any_scope_building = { is_building_type = building_gulag_unemployment_center has_active_production_method = pm_rejob_uc_electric_fencing } } add = 4 }
+}
+
+# 国家视角：用于 UI 显示基准（取任一拥有该建筑的州）
+rejob_uc_mortality_pm_base_country = {
+	value = 0
+	if = { limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_unemployment_center has_active_production_method = pm_rejob_uc_shao } } } add = 4 }
+	if = { limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_unemployment_center has_active_production_method = pm_rejob_uc_gulag } } } add = 4 }
+	if = { limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_unemployment_center has_active_production_method = pm_rejob_uc_oil } } } add = 4 }
+	if = { limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_unemployment_center has_active_production_method = pm_rejob_uc_gas } } } add = 400 }
+	if = { limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_unemployment_center has_active_production_method = pm_rejob_uc_labour } } } add = 1 }
+	if = { limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_unemployment_center has_active_production_method = pm_rejob_uc_barbed_wire_fences } } } add = 2 }
+	if = { limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_unemployment_center has_active_production_method = pm_rejob_uc_electric_fencing } } } add = 4 }
+}
+
+# UI 显示用：总和（下限 0）
+rejob_uc_mortality_total = {
+	value = var:rejob_uc_mortality_offset
+	add = rejob_uc_mortality_pm_base_country
+	min = 0
+}
+
+# 生产方式固定值取负（用于下面的下限比较）
+rejob_uc_mortality_pm_base_in_state_negated = {
+	value = rejob_uc_mortality_pm_base_in_state
+	multiply = -1
+}
+
+# 应用层：追加到州上的补偿值 = max(offset, -pm_base)
+rejob_uc_mortality_offset_effective = {
+	value = owner.var:rejob_uc_mortality_offset
+	min = rejob_uc_mortality_pm_base_in_state_negated
+}

@@ -1,0 +1,145 @@
+﻿rejob_uc_mortality_plus_1000 = {
+	name = "rejob_uc_mortality_plus_1000"
+	desc = "rejob_uc_mortality_plus_1000_desc"
+	possible = { NOT = { rejob_uc_has_special_pm = yes } }
+
+	effect = {
+		change_variable = {
+			name = rejob_uc_mortality_offset
+			add = 1000
+		}
+		rejob_uc_refresh_mortality = yes
+	}
+}
+
+rejob_uc_mortality_plus_100 = {
+	name = "rejob_uc_mortality_plus_100"
+	desc = "rejob_uc_mortality_plus_100_desc"
+	possible = { NOT = { rejob_uc_has_special_pm = yes } }
+
+	effect = {
+		change_variable = {
+			name = rejob_uc_mortality_offset
+			add = 100
+		}
+		rejob_uc_refresh_mortality = yes
+	}
+}
+
+rejob_uc_mortality_plus_10 = {
+	name = "rejob_uc_mortality_plus_10"
+	desc = "rejob_uc_mortality_plus_10_desc"
+	possible = { NOT = { rejob_uc_has_special_pm = yes } }
+
+	effect = {
+		change_variable = {
+			name = rejob_uc_mortality_offset
+			add = 10
+		}
+		rejob_uc_refresh_mortality = yes
+	}
+}
+
+rejob_uc_mortality_plus_1 = {
+	name = "rejob_uc_mortality_plus_1"
+	desc = "rejob_uc_mortality_plus_1_desc"
+	possible = { NOT = { rejob_uc_has_special_pm = yes } }
+
+	effect = {
+		change_variable = {
+			name = rejob_uc_mortality_offset
+			add = 1
+		}
+		rejob_uc_refresh_mortality = yes
+	}
+}
+
+rejob_uc_mortality_minus_1 = {
+	name = "rejob_uc_mortality_minus_1"
+	desc = "rejob_uc_mortality_minus_1_desc"
+	possible = { NOT = { rejob_uc_has_special_pm = yes } }
+
+	effect = {
+		if = {
+			limit = {
+				root.var:rejob_uc_mortality_offset > -10000
+			}
+			change_variable = {
+				name = rejob_uc_mortality_offset
+				subtract = 1
+			}
+			rejob_uc_refresh_mortality = yes
+		}
+	}
+}
+
+rejob_uc_mortality_minus_10 = {
+	name = "rejob_uc_mortality_minus_10"
+	desc = "rejob_uc_mortality_minus_10_desc"
+	possible = { NOT = { rejob_uc_has_special_pm = yes } }
+
+	effect = {
+		if = {
+			limit = {
+				root.var:rejob_uc_mortality_offset > -10000
+			}
+			change_variable = {
+				name = rejob_uc_mortality_offset
+				subtract = 10
+			}
+			rejob_uc_refresh_mortality = yes
+		}
+	}
+}
+
+rejob_uc_mortality_minus_100 = {
+	name = "rejob_uc_mortality_minus_100"
+	desc = "rejob_uc_mortality_minus_100_desc"
+	possible = { NOT = { rejob_uc_has_special_pm = yes } }
+
+	effect = {
+		if = {
+			limit = {
+				root.var:rejob_uc_mortality_offset > -10000
+			}
+			change_variable = {
+				name = rejob_uc_mortality_offset
+				subtract = 100
+			}
+			rejob_uc_refresh_mortality = yes
+		}
+	}
+}
+
+rejob_uc_mortality_minus_1000 = {
+	name = "rejob_uc_mortality_minus_1000"
+	desc = "rejob_uc_mortality_minus_1000_desc"
+	possible = { NOT = { rejob_uc_has_special_pm = yes } }
+
+	effect = {
+		if = {
+			limit = {
+				root.var:rejob_uc_mortality_offset > -10000
+			}
+			change_variable = {
+				name = rejob_uc_mortality_offset
+				subtract = 1000
+			}
+			rejob_uc_refresh_mortality = yes
+		}
+	}
+}
+
+rejob_uc_mortality_reset = {
+	name = "rejob_uc_mortality_reset"
+	desc = "rejob_uc_mortality_reset_desc"
+	possible = { NOT = { rejob_uc_has_special_pm = yes } }
+
+	effect = {
+		set_variable = {
+			name = rejob_uc_mortality_offset
+			value = 0
+		}
+		rejob_uc_refresh_mortality = yes
+	}
+}

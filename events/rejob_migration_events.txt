@@ -1,0 +1,430 @@
+﻿namespace = rejob_migration
+
+rejob_migration.1 = {
+	type = country_event
+	placement = ROOT
+	duration = 3
+
+	title = rejob_migration.1.t
+	desc = rejob_migration.1.desc
+
+	trigger = {
+		rejob_noncapital_unemployed_population_estimate > 0
+	}
+
+	option = {
+		name = rejob_migration.1.a
+		trigger = {
+			rejob_noncapital_unemployed_population_estimate >= 1000000
+		}
+		custom_tooltip = rejob_migration.1.a_tt
+		hidden_effect = {
+			set_variable = { name = rejob_migration_remaining value = 1000000 }
+			set_variable = { name = rejob_migration_moved value = 0 }
+			set_variable = { name = rejob_migration_chunk value = 0 }
+			every_scope_state = {
+				limit = { is_capital = no }
+				every_scope_pop = {
+					limit = {
+						is_employed = no
+						NOT = { is_pop_type = delicious }
+					}
+					if = {
+						limit = { root.var:rejob_migration_remaining > 0 }
+						save_scope_as = rejob_migration_current_pop
+						root = {
+							set_variable = {
+								name = rejob_migration_chunk
+								value = {
+									value = scope:rejob_migration_current_pop.total_size
+									max = var:rejob_migration_remaining
+									floor = yes
+								}
+							}
+						}
+						if = {
+							limit = { root.var:rejob_migration_chunk > 0 }
+							move_partial_pop = {
+								state = root.capital
+								population = root.var:rejob_migration_chunk
+							}
+							root = {
+								change_variable = {
+									name = rejob_migration_remaining
+									add = {
+										value = var:rejob_migration_chunk
+										multiply = -1
+									}
+								}
+								change_variable = {
+									name = rejob_migration_moved
+									add = var:rejob_migration_chunk
+								}
+							}
+						}
+					}
+				}
+			}
+			add_treasury = {
+				value = var:rejob_migration_moved
+				multiply = -1
+			}
+			set_variable = { name = rejob_migration_remaining value = 0 }
+			set_variable = { name = rejob_migration_moved value = 0 }
+			set_variable = { name = rejob_migration_chunk value = 0 }
+		}
+	}
+
+	option = {
+		name = rejob_migration.1.b
+		trigger = {
+			rejob_noncapital_unemployed_population_estimate >= 2000000
+		}
+		custom_tooltip = rejob_migration.1.b_tt
+		hidden_effect = {
+			set_variable = { name = rejob_migration_remaining value = 2000000 }
+			set_variable = { name = rejob_migration_moved value = 0 }
+			set_variable = { name = rejob_migration_chunk value = 0 }
+			every_scope_state = {
+				limit = { is_capital = no }
+				every_scope_pop = {
+					limit = {
+						is_employed = no
+						NOT = { is_pop_type = delicious }
+					}
+					if = {
+						limit = { root.var:rejob_migration_remaining > 0 }
+						save_scope_as = rejob_migration_current_pop
+						root = {
+							set_variable = {
+								name = rejob_migration_chunk
+								value = {
+									value = scope:rejob_migration_current_pop.total_size
+									max = var:rejob_migration_remaining
+									floor = yes
+								}
+							}
+						}
+						if = {
+							limit = { root.var:rejob_migration_chunk > 0 }
+							move_partial_pop = {
+								state = root.capital
+								population = root.var:rejob_migration_chunk
+							}
+							root = {
+								change_variable = {
+									name = rejob_migration_remaining
+									add = {
+										value = var:rejob_migration_chunk
+										multiply = -1
+									}
+								}
+								change_variable = {
+									name = rejob_migration_moved
+									add = var:rejob_migration_chunk
+								}
+							}
+						}
+					}
+				}
+			}
+			add_treasury = {
+				value = var:rejob_migration_moved
+				multiply = -1
+			}
+			set_variable = { name = rejob_migration_remaining value = 0 }
+			set_variable = { name = rejob_migration_moved value = 0 }
+			set_variable = { name = rejob_migration_chunk value = 0 }
+		}
+	}
+
+	option = {
+		name = rejob_migration.1.c
+		trigger = {
+			rejob_noncapital_unemployed_population_estimate >= 3000000
+		}
+		custom_tooltip = rejob_migration.1.c_tt
+		hidden_effect = {
+			set_variable = { name = rejob_migration_remaining value = 3000000 }
+			set_variable = { name = rejob_migration_moved value = 0 }
+			set_variable = { name = rejob_migration_chunk value = 0 }
+			every_scope_state = {
+				limit = { is_capital = no }
+				every_scope_pop = {
+					limit = {
+						is_employed = no
+						NOT = { is_pop_type = delicious }
+					}
+					if = {
+						limit = { root.var:rejob_migration_remaining > 0 }
+						save_scope_as = rejob_migration_current_pop
+						root = {
+							set_variable = {
+								name = rejob_migration_chunk
+								value = {
+									value = scope:rejob_migration_current_pop.total_size
+									max = var:rejob_migration_remaining
+									floor = yes
+								}
+							}
+						}
+						if = {
+							limit = { root.var:rejob_migration_chunk > 0 }
+							move_partial_pop = {
+								state = root.capital
+								population = root.var:rejob_migration_chunk
+							}
+							root = {
+								change_variable = {
+									name = rejob_migration_remaining
+									add = {
+										value = var:rejob_migration_chunk
+										multiply = -1
+									}
+								}
+								change_variable = {
+									name = rejob_migration_moved
+									add = var:rejob_migration_chunk
+								}
+							}
+						}
+					}
+				}
+			}
+			add_treasury = {
+				value = var:rejob_migration_moved
+				multiply = -1
+			}
+			set_variable = { name = rejob_migration_remaining value = 0 }
+			set_variable = { name = rejob_migration_moved value = 0 }
+			set_variable = { name = rejob_migration_chunk value = 0 }
+		}
+	}
+
+	option = {
+		name = rejob_migration.1.d
+		trigger = {
+			rejob_noncapital_unemployed_population_estimate >= 5000000
+		}
+		custom_tooltip = rejob_migration.1.d_tt
+		hidden_effect = {
+			set_variable = { name = rejob_migration_remaining value = 5000000 }
+			set_variable = { name = rejob_migration_moved value = 0 }
+			set_variable = { name = rejob_migration_chunk value = 0 }
+			every_scope_state = {
+				limit = { is_capital = no }
+				every_scope_pop = {
+					limit = {
+						is_employed = no
+						NOT = { is_pop_type = delicious }
+					}
+					if = {
+						limit = { root.var:rejob_migration_remaining > 0 }
+						save_scope_as = rejob_migration_current_pop
+						root = {
+							set_variable = {
+								name = rejob_migration_chunk
+								value = {
+									value = scope:rejob_migration_current_pop.total_size
+									max = var:rejob_migration_remaining
+									floor = yes
+								}
+							}
+						}
+						if = {
+							limit = { root.var:rejob_migration_chunk > 0 }
+							move_partial_pop = {
+								state = root.capital
+								population = root.var:rejob_migration_chunk
+							}
+							root = {
+								change_variable = {
+									name = rejob_migration_remaining
+									add = {
+										value = var:rejob_migration_chunk
+										multiply = -1
+									}
+								}
+								change_variable = {
+									name = rejob_migration_moved
+									add = var:rejob_migration_chunk
+								}
+							}
+						}
+					}
+				}
+			}
+			add_treasury = {
+				value = var:rejob_migration_moved
+				multiply = -1
+			}
+			set_variable = { name = rejob_migration_remaining value = 0 }
+			set_variable = { name = rejob_migration_moved value = 0 }
+			set_variable = { name = rejob_migration_chunk value = 0 }
+		}
+	}
+
+	option = {
+		name = rejob_migration.1.e
+		trigger = {
+			rejob_noncapital_unemployed_population_estimate >= 8000000
+		}
+		custom_tooltip = rejob_migration.1.e_tt
+		hidden_effect = {
+			set_variable = { name = rejob_migration_remaining value = 8000000 }
+			set_variable = { name = rejob_migration_moved value = 0 }
+			set_variable = { name = rejob_migration_chunk value = 0 }
+			every_scope_state = {
+				limit = { is_capital = no }
+				every_scope_pop = {
+					limit = {
+						is_employed = no
+						NOT = { is_pop_type = delicious }
+					}
+					if = {
+						limit = { root.var:rejob_migration_remaining > 0 }
+						save_scope_as = rejob_migration_current_pop
+						root = {
+							set_variable = {
+								name = rejob_migration_chunk
+								value = {
+									value = scope:rejob_migration_current_pop.total_size
+									max = var:rejob_migration_remaining
+									floor = yes
+								}
+							}
+						}
+						if = {
+							limit = { root.var:rejob_migration_chunk > 0 }
+							move_partial_pop = {
+								state = root.capital
+								population = root.var:rejob_migration_chunk
+							}
+							root = {
+								change_variable = {
+									name = rejob_migration_remaining
+									add = {
+										value = var:rejob_migration_chunk
+										multiply = -1
+									}
+								}
+								change_variable = {
+									name = rejob_migration_moved
+									add = var:rejob_migration_chunk
+								}
+							}
+						}
+					}
+				}
+			}
+			add_treasury = {
+				value = var:rejob_migration_moved
+				multiply = -1
+			}
+			set_variable = { name = rejob_migration_remaining value = 0 }
+			set_variable = { name = rejob_migration_moved value = 0 }
+			set_variable = { name = rejob_migration_chunk value = 0 }
+		}
+	}
+
+	option = {
+		name = rejob_migration.1.f
+		trigger = {
+			rejob_noncapital_unemployed_population_estimate >= 10000000
+		}
+		custom_tooltip = rejob_migration.1.f_tt
+		hidden_effect = {
+			set_variable = { name = rejob_migration_remaining value = 10000000 }
+			set_variable = { name = rejob_migration_moved value = 0 }
+			set_variable = { name = rejob_migration_chunk value = 0 }
+			every_scope_state = {
+				limit = { is_capital = no }
+				every_scope_pop = {
+					limit = {
+						is_employed = no
+						NOT = { is_pop_type = delicious }
+					}
+					if = {
+						limit = { root.var:rejob_migration_remaining > 0 }
+						save_scope_as = rejob_migration_current_pop
+						root = {
+							set_variable = {
+								name = rejob_migration_chunk
+								value = {
+									value = scope:rejob_migration_current_pop.total_size
+									max = var:rejob_migration_remaining
+									floor = yes
+								}
+							}
+						}
+						if = {
+							limit = { root.var:rejob_migration_chunk > 0 }
+							move_partial_pop = {
+								state = root.capital
+								population = root.var:rejob_migration_chunk
+							}
+							root = {
+								change_variable = {
+									name = rejob_migration_remaining
+									add = {
+										value = var:rejob_migration_chunk
+										multiply = -1
+									}
+								}
+								change_variable = {
+									name = rejob_migration_moved
+									add = var:rejob_migration_chunk
+								}
+							}
+						}
+					}
+				}
+			}
+			add_treasury = {
+				value = var:rejob_migration_moved
+				multiply = -1
+			}
+			set_variable = { name = rejob_migration_remaining value = 0 }
+			set_variable = { name = rejob_migration_moved value = 0 }
+			set_variable = { name = rejob_migration_chunk value = 0 }
+		}
+	}
+
+	option = {
+		name = rejob_migration.1.g
+		trigger = {
+			rejob_noncapital_unemployed_population_estimate > 0
+		}
+		default_option = yes
+		custom_tooltip = rejob_migration.1.g_tt
+		hidden_effect = {
+			set_variable = { name = rejob_migration_remaining value = 0 }
+			set_variable = { name = rejob_migration_moved value = 0 }
+			set_variable = { name = rejob_migration_chunk value = 0 }
+			every_scope_state = {
+				limit = { is_capital = no }
+				every_scope_pop = {
+					limit = {
+						is_employed = no
+						NOT = { is_pop_type = delicious }
+					}
+					save_scope_as = rejob_migration_current_pop
+					root = {
+						change_variable = {
+							name = rejob_migration_moved
+							add = scope:rejob_migration_current_pop.total_size
+						}
+					}
+					move_pop = root.capital
+				}
+			}
+			add_treasury = {
+				value = var:rejob_migration_moved
+				multiply = -1
+			}
+			set_variable = { name = rejob_migration_remaining value = 0 }
+			set_variable = { name = rejob_migration_moved value = 0 }
+			set_variable = { name = rejob_migration_chunk value = 0 }
+		}
+	}
+}
