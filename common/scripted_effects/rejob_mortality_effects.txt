@@ -65,11 +65,7 @@ rejob_default_mortality = {
 		set_variable = { name = rejob_apply_camp  value = 0 }
 	}
 	# ★ v2：石油/橡胶产出比例的三个变量
-	#   rejob_oil_ratio 默认 100（= 纯石油），保证不开启时行为与改动前一致
-	if = {
-		limit = { NOT = { has_variable = rejob_oil_ratio } }
-		set_variable = { name = rejob_oil_ratio  value = 100 }
-	}
+	#   rejob_oil_ratio 默认 100（= 纯石油），保证不开启时行为与改动前一致	rejob_ensure_oil_vars = yes
 	if = {
 		limit = { NOT = { has_variable = rejob_apply_oil_uc } }
 		set_variable = { name = rejob_apply_oil_uc  value = 0 }
@@ -342,7 +338,36 @@ rejob_apply_uc_mortality_to_building = {	# ★ 2026-10-11 第九轮重做（关�
 # ---------------------------------------------------------------------------
 # 刷新：全国所有「再就业中心」与「集中营」的产出比例修正
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# ★ 2026-10-18【常驻化】确保 ratio 与两个开关变量存在（幂等）
+#   root = 国家（Country）
+#
+#   为什么需要：修正常驻后，任何时刻都可能需要读 ratio，
+#   而旧存档里该变量可能尚未初始化（会导致 Failed to fetch variable）。
+#
+#   ★ 本效果【绝不能】调用 rejob_default_mortality：
+#     它会回调 rejob_refresh_mortality → rejob_refresh_oil_balance，
+#     造成无限递归！故在此处独立实现变量补齐。
+# ---------------------------------------------------------------------------
+rejob_ensure_oil_vars = {
+	if = {
+		limit = { NOT = { has_variable = rejob_oil_ratio } }
+		set_variable = { name = rejob_oil_ratio  value = 100 }
+	}
+	if = {
+		limit = { NOT = { has_variable = rejob_apply_oil_uc } }
+		set_variable = { name = rejob_apply_oil_uc  value = 0 }
+	}
+	if = {
+		limit = { NOT = { has_variable = rejob_apply_oil_camp } }
+		set_variable = { name = rejob_apply_oil_camp  value = 0 }
+	}
+}
+
 rejob_refresh_oil_balance = {
+	# ★ 常驻化：确保变量已初始化
+	rejob_ensure_oil_vars = yes
+
 	# 第一步：无条件清除 4 个容器（仅靠 has_modifier 守卫）
 	every_scope_building = {
 		limit = { is_building_group = rejob_unemployment_center }
@@ -355,11 +380,10 @@ rejob_refresh_oil_balance = {
 		if = { limit = { has_modifier = rejob_camp_rubber_mult } remove_modifier = rejob_camp_rubber_mult }
 	}
 
-	# 第二步：再就业中心（开关开启 + 该建筑处于石油 PM）
+	# 第二步：再就业中心 —— ★ 常驻施加（不再受开关门控）
+	#   开关已退化为「编辑锁」，只决定能否修改 ratio，不决定是否施加修正。
 	if = {
 		limit = {
-			has_variable = rejob_apply_oil_uc
-			var:rejob_apply_oil_uc = 1
 			rejob_has_unemployment_center = yes
 		}
 		every_scope_building = {
@@ -371,11 +395,9 @@ rejob_refresh_oil_balance = {
 		}
 	}
 
-	# 第三步：集中营（同理）
+	# 第三步：集中营 —— ★ 常驻施加（同理）
 	if = {
 		limit = {
-			has_variable = rejob_apply_oil_camp
-			var:rejob_apply_oil_camp = 1
 			rejob_has_camp = yes
 		}
 		every_scope_building = {
@@ -394,22 +416,26 @@ rejob_refresh_oil_balance = {
 #   ratio = 100 时两者都为 0/无操作 ⇒ 与改动前完全一致
 # ---------------------------------------------------------------------------
 rejob_apply_oil_to_uc_building = {
-	# 石油倍率 = ratio/100 − 1
-	add_modifier = {
-		name = rejob_uc_oil_mult
-		multiplier = {
-			value = owner.var:rejob_oil_ratio
-			divide = 100
-			subtract = 1
+	# ★ 双保险：变量未初始化时直接跳过，避免报错
+	if = {
+		limit = { owner = { has_variable = rejob_oil_ratio } }
+		# 石油倍率 = ratio/100 − 1
+		add_modifier = {
+			name = rejob_uc_oil_mult
+			multiplier = {
+				value = owner.var:rejob_oil_ratio
+				divide = 100
+				subtract = 1
+			}
 		}
-	}
-	# 橡胶倍率 = −ratio/100
-	add_modifier = {
-		name = rejob_uc_rubber_mult
-		multiplier = {
-			value = owner.var:rejob_oil_ratio
-			divide = 100
-			multiply = -1
+		# 橡胶倍率 = −ratio/100
+		add_modifier = {
+			name = rejob_uc_rubber_mult
+			multiplier = {
+				value = owner.var:rejob_oil_ratio
+				divide = 100
+				multiply = -1
+			}
 		}
 	}
 }
@@ -418,20 +444,69 @@ rejob_apply_oil_to_uc_building = {
 # 单建筑：集中营（root = 建筑）—— 与上面同构
 # ---------------------------------------------------------------------------
 rejob_apply_oil_to_camp_building = {
-	add_modifier = {
-		name = rejob_camp_oil_mult
-		multiplier = {
-			value = owner.var:rejob_oil_ratio
-			divide = 100
-			subtract = 1
+	# ★ 双保险：同上
+	if = {
+		limit = { owner = { has_variable = rejob_oil_ratio } }
+		add_modifier = {
+			name = rejob_camp_oil_mult
+			multiplier = {
+				value = owner.var:rejob_oil_ratio
+				divide = 100
+				subtract = 1
+			}
+		}
+		add_modifier = {
+			name = rejob_camp_rubber_mult
+			multiplier = {
+				value = owner.var:rejob_oil_ratio
+				divide = 100
+				multiply = -1
+			}
 		}
 	}
-	add_modifier = {
-		name = rejob_camp_rubber_mult
-		multiplier = {
-			value = owner.var:rejob_oil_ratio
-			divide = 100
-			multiply = -1
+}
+
+# ---------------------------------------------------------------------------
+# ★ 2026-10-18【常驻化】单建筑版：刷新产出比例修正（先清后挂）
+#   root = 建筑（Building）
+#
+#   供 on_building_built / on_production_method_changed 使用：
+#     · 建筑刚建成 → 立即挂上比例修正（不等每月脉冲）
+#     · 切换生产方式 → 先清旧容器，再按「当前是否处于石油 PM」重新挂
+#       （这样「切出石油 PM」时修正会被正确移除，不会残留）
+# ---------------------------------------------------------------------------
+rejob_refresh_oil_balance_on_building = {
+	# ★ 常驻化：确保变量已初始化（root = 建筑，故用 owner 回到国家）
+	#   on_building_built / on_production_method_changed 都会走这里，
+	#   若旧存档尚未初始化变量，会报 Failed to fetch variable。
+	owner = { rejob_ensure_oil_vars = yes }
+	if = { limit = { has_modifier = rejob_uc_oil_mult }     remove_modifier = rejob_uc_oil_mult }
+	if = { limit = { has_modifier = rejob_uc_rubber_mult }  remove_modifier = rejob_uc_rubber_mult }
+	if = { limit = { has_modifier = rejob_camp_oil_mult }    remove_modifier = rejob_camp_oil_mult }
+	if = { limit = { has_modifier = rejob_camp_rubber_mult } remove_modifier = rejob_camp_rubber_mult }
+	rejob_apply_oil_on_building = yes
+}
+
+# ---------------------------------------------------------------------------
+# ★ 2026-10-18【常驻化】单建筑版：施加产出比例修正
+#   root = 建筑（Building）
+#   仅当该建筑处于石油 PM 时才挂（否则什么都不做）
+# ---------------------------------------------------------------------------
+rejob_apply_oil_on_building = {
+	# 再就业中心（使用 rejob_uc_* 容器）
+	if = {
+		limit = {
+			is_building_group = rejob_unemployment_center
+			has_active_production_method = pm_rejob_uc_oil
 		}
+		rejob_apply_oil_to_uc_building = yes
+	}
+	# 集中营（使用 rejob_camp_* 容器 —— 切勿用 uc 版本，修正名不同）
+	if = {
+		limit = {
+			is_building_group = gulag_industry
+			has_active_production_method = pm_gulag_oil
+		}
+		rejob_apply_oil_to_camp_building = yes
 	}
 }

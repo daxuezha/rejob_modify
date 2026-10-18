@@ -384,7 +384,7 @@ rejob_oil_minus_100 = {
 rejob_oil_reset = {
 	name = "rejob_oil_reset"
 	desc = "rejob_oil_reset_desc"
-	possible = { rejob_oil_buttons_possible = yes }
+	possible = { rejob_oil_edit_unlocked = yes }
 
 	effect = {
 		set_variable = { name = rejob_oil_ratio  value = 100 }
@@ -394,11 +394,20 @@ rejob_oil_reset = {
 
 
 # ===========================================================================
-# ★ 2026-10-18【v2 方案】E. 产出比例的两个「生效开关」
+# ★ 2026-10-18【常驻化 · 需求 2】E. 产出比例的两个「编辑锁」
 # ---------------------------------------------------------------------------
-# 与死亡率开关同构：决定比例修正作用于哪座建筑。
-#   · 只影响「当前选择石油生产方式」的建筑
-#   · 关闭时该建筑不受比例影响，但 ratio 本身保留
+# ★ 语义变更（重要）：
+#   旧：开关 = 「是否施加比例修正」  ⇒ 关闭后产出回到 2000+2000（50/50）
+#   新：开关 = 「是否允许修改比例」  ⇒ 关闭后【修正仍然生效】，只是不能改数值
+#
+#   为什么改：PM 声明了「2000 油 + 2000 橡胶」这一固定约束，
+#   若修正可被关闭，则产出恒为 50/50，玩家无法回到「纯石油」，
+#   与该生产方式应有的默认语义冲突（需求方 2026-10-18 反馈）。
+#
+#   现在的行为：
+#     · 比例修正【永远挂着】，ratio 默认 100 ⇒ 纯石油（默认即正确）
+#     · 开启开关 ⇒ 可以点击 ± 按钮调整 ratio
+#     · 关闭开关 ⇒ 按钮置灰，但修正照常生效，产出不变
 # ===========================================================================
 
 rejob_toggle_apply_oil_uc = {
@@ -406,6 +415,7 @@ rejob_toggle_apply_oil_uc = {
 	desc = "rejob_toggle_apply_oil_uc_desc"
 	possible = {
 		rejob_has_unemployment_center = yes
+		has_variable = rejob_apply_oil_uc
 	}
 
 	selected = {
@@ -430,6 +440,7 @@ rejob_toggle_apply_oil_camp = {
 	desc = "rejob_toggle_apply_oil_camp_desc"
 	possible = {
 		rejob_has_camp = yes
+		has_variable = rejob_apply_oil_camp
 	}
 
 	selected = {

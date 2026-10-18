@@ -77,6 +77,9 @@ rejob_on_production_method_changed = {
 			}
 			rejob_refresh_uc_building_mortality = yes
 		}
+		# ★ 2026-10-18【常驻化】切换生产方式时同步刷新「产出比例」修正
+		#   切入石油 PM → 挂上比例修正；切出 → 移除（防残留）
+		rejob_refresh_oil_balance_on_building = yes
 	}
 }
 
@@ -126,6 +129,49 @@ rejob_state_monthly_mortality_check = {
 				}
 			}
 			remove_modifier = rejob_camp_mortality_dynamic
+		}
+	}
+}
+
+# ============================================================================
+# ★ 2026-10-18【常驻化 · 需求 2】建筑建成时立即挂上常驻修正
+# ----------------------------------------------------------------------------
+# 官方钩子：common/on_actions/00_code_on_actions.txt:2257-2258
+#     # Root = Building
+#     on_building_built = { effect = { ... } }
+#   香草用于「马尼拉大教堂地震」「圣家堂阶段推进」等，证明其可被事件/建造触发。
+#
+# 为什么需要：产出比例修正改为【常驻】后，建筑刚建成就应立即生效，
+#   而不是等下一次每月脉冲。否则玩家会看到「新建建筑产出 50/50」的中间态。
+#
+# 追加写法（官方文档 _on_actions.md:117-128 明确给出）：
+#   不能直接给已有 effect 的 on_action 追加 effect 块（会冲突），
+#   而应在 on_actions 列表里挂一个「新名字」的 on_action。
+#
+# 兜底：on_monthly_pulse_country 仍会每月刷新一次，
+#   因此即使本钩子漏掉某些建造途径（控制台/投资池），最多 1 个月也会补上。
+# ============================================================================
+
+on_building_built = {
+	on_actions = {
+		rejob_on_building_built
+	}
+}
+
+rejob_on_building_built = {
+	effect = {
+		# 只处理本 mod 的两座建筑，避免影响全国其他建筑
+		if = {
+			limit = {
+				OR = {
+					is_building_group = rejob_unemployment_center
+					is_building_group = gulag_industry
+				}
+			}
+			# ★ 产出比例：常驻施加（不受开关门控）。
+			#   本效果内部会先清除旧容器再按「是否处于石油 PM」重新挂上，
+			#   因此对非石油建筑也是安全的（等价于「确保没有比例修正」）。
+			rejob_refresh_oil_balance_on_building = yes
 		}
 	}
 }

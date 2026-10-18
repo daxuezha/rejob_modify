@@ -124,12 +124,10 @@ rejob_mortality_buttons_possible = {
 rejob_oil_buttons_possible = {
 	OR = {
 		AND = {
-			has_variable = rejob_apply_oil_uc
 			root.var:rejob_apply_oil_uc = 1
 			rejob_has_unemployment_center = yes
 		}
 		AND = {
-			has_variable = rejob_apply_oil_camp
 			root.var:rejob_apply_oil_camp = 1
 			rejob_has_camp = yes
 		}
@@ -155,6 +153,9 @@ rejob_oil_buttons_possible = {
 # 可上调：存在任一相关建筑 + 未达上限 100
 rejob_oil_ratio_can_up = {
 	rejob_has_any_center = yes
+	# ★ 编辑锁：必须先开启对应开关，才允许修改比例
+	#   （开关【不影响】修正是否生效 —— 修正常驻）
+	rejob_oil_edit_unlocked = yes
 	# 变量缺失时按默认值 100（= 纯石油）处理，使按钮读档后立即可用
 	OR = {
 		NOT = { has_variable = rejob_oil_ratio }
@@ -165,9 +166,30 @@ rejob_oil_ratio_can_up = {
 # 可下调：存在任一相关建筑 + 未达下限 0
 rejob_oil_ratio_can_down = {
 	rejob_has_any_center = yes
+	# ★ 编辑锁：同上
+	rejob_oil_edit_unlocked = yes
 	# 变量缺失时按默认值 100（= 纯石油）处理，使按钮读档后立即可用
 	OR = {
 		NOT = { has_variable = rejob_oil_ratio }
 		root.var:rejob_oil_ratio > 0
+	}
+}
+
+# ---------------------------------------------------------------------------
+# ★ 2026-10-18【常驻化 · 需求 2】编辑锁
+#   只要有【任一】相关建筑的开关开启，就允许修改 ratio。
+#   注意：这【只】决定「能否调节」，不决定「修正是否生效」——
+#        产出比例修正是常驻的，与开关状态无关。
+# ---------------------------------------------------------------------------
+rejob_oil_edit_unlocked = {
+	OR = {
+		AND = {
+			root.var:rejob_apply_oil_uc = 1
+			rejob_has_unemployment_center = yes
+		}
+		AND = {
+			root.var:rejob_apply_oil_camp = 1
+			rejob_has_camp = yes
+		}
 	}
 }
