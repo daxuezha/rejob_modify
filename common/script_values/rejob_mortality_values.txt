@@ -1,0 +1,332 @@
+﻿# ============================================================================
+# 再就业中心（整合版）· 死亡率调节 · 脚本值
+# ----------------------------------------------------------------------------
+# 单位约定：
+#   所有 mortality 修正类型均为 percent = yes，引擎显示时 ×100 并补 %。
+#   故本文件数值一律使用「原始修正单位」：
+#       0.01 = 1%    0.10 = 10%    1.00 = 100%
+#   调节变量 rejob_offset 同单位，故按钮写 0.1 即代表 +10%。
+#
+# ★ 2026-10-11 第六轮重做 ★
+#   1) 再就业中心改用【建筑级 · 按职业】修正：
+#        building_laborers / aristocrats / capitalists _mortality_mult
+#      root 也从「州」改为「建筑」——
+#      只有建筑级修正才能「只影响被该建筑招募的人」。
+#      详见 static_modifiers/rejob_mortality_modifiers.txt 顶部说明。
+#   2) 集中营保持【州级】state_delicious_mortality_mult
+#      （delicious 是自定义人口，无建筑级版本；且只有集中营会雇佣它）
+#
+# ★ 核心公式（对应需求 5）★
+#       合计 = 生产方式基准值 + 调节值
+#       若合计 < 0，则合计 = 0        ← 由 min = 0 实现
+#   写入建筑的补偿量 = max(调节值, -生产方式基准值)
+#     · 正调节值 → 直接生效（调高死亡率）
+#     · 负调节值 → 最多抵消掉生产方式自带的部分，合计最低为 0，不会变负
+#   ★ 注意：这里绝不能写成 min = 0。那样会让负调节完全失效（按钮点了没反应），
+#     因为负值被截断成 0 后，就再也抵消不掉生产方式自带的死亡率了。
+# ============================================================================
+
+
+# ============================================================================
+# 一、再就业中心 —— 建筑级（按职业）
+# ----------------------------------------------------------------------------
+# ★ 第六轮：root 从「州 state」改为「建筑 building」。
+#   原因见 static_modifiers/rejob_mortality_modifiers.txt 顶部说明 ——
+#   只有建筑级修正才能「只影响被该建筑招募的人」，不波及全州同职业人口。
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# A1. 生产方式基准值（root = 建筑 building）
+#     统计「本建筑」当前激活 PM 自带的死亡率。
+#
+#     ★ 2026-10-11 第九轮：生产项目组的死亡率已全部移除，
+#       因此基准值只按「岗位构成」组统计，不再需要按生产项目组区分。
+#       （第七轮按职业拆分的逻辑保留，用于负调节的下限截断）
+#
+#     结构说明（第九轮起）：
+#       · 生产项目组（pmg_rejob_uc_camp）的 PM 【不再】提供任何死亡率；
+#         死亡率全部来自「岗位构成」组（pmg_rejob_uc_pop）的 PM。
+#       · 岗位构成组的 PM 决定实际雇佣的职业，
+#         其自带值即为对应职业的基准值。
+# ---------------------------------------------------------------------------
+
+# 本建筑「劳工」的基准值 = 岗位构成组中雇佣劳工的 PM 自带死亡率之和
+#   ★ 2026-10-11 第九轮：生产项目组（pmg_rejob_uc_camp）的死亡率修正已按需求
+#     全部移除，基准值不再有生产项目组的贡献，只统计「岗位构成」组。
+rejob_uc_pm_base_laborers = {
+	value = 0
+	if = { limit = { has_active_production_method = pm_rejob_uc_labour }              add = 1 }
+	if = { limit = { has_active_production_method = pm_rejob_uc_barbed_wire_fences }  add = 2 }
+	if = { limit = { has_active_production_method = pm_rejob_uc_electric_fencing }    add = 4 }
+}
+
+# 本建筑「地主 / 资本家」的基准值 = 专业阶层岗位
+#   （pm_rejob_uc_upper 同时雇佣 aristocrats 与 capitalists，二者基准值相同）
+rejob_uc_pm_base_upper = {
+	value = 0
+	if = {
+		limit = { has_active_production_method = pm_rejob_uc_upper }
+		add = 40
+	}
+}
+
+# 本建筑基准值（显示用：取两种口径中的较大者，保证下限足够低）
+rejob_uc_pm_base_building = {
+	value = rejob_uc_pm_base_laborers
+	max = rejob_uc_pm_base_upper
+}
+
+# 各职业基准值取负（用作各自的下限）
+rejob_uc_pm_base_laborers_negated = {
+	value = rejob_uc_pm_base_laborers
+	multiply = -1
+}
+
+rejob_uc_pm_base_upper_negated = {
+	value = rejob_uc_pm_base_upper
+	multiply = -1
+}
+
+# 国家视角：用于日志显示的基准值（境内任一建筑的基准值中的最大者）
+#
+# ★ 2026-10-11 第九轮重做（关键修复）★
+#   原写法：
+#     every_scope_building = { limit = {...}  max = rejob_uc_pm_base_building }
+#   存在两个致命问题（error.log 有 160 条硬证据）：
+#     ① list 子句内以【裸名】引用的 script_value，其求值作用域是【外层 country】，
+#        而不是当前的 building。于是 rejob_uc_pm_base_building 内部的
+#        has_active_production_method 报：
+#          Error: has_active_production_method trigger
+#                 [ Wrong scope for trigger: country, expected building ]
+#     ② 因此本值恒为 0，日志上「生产方式」永远显示 0%。
+#
+#   修法：改为与集中营侧完全对称的「逐个 PM 判断」写法，
+#         用 any_scope_building 直接检测「境内是否存在使用某 PM 的建筑」。
+#         any_scope_building 的作用域是 { country state }（CWTools lists.cwt:1738），
+#         在 country 作用域下合法，不会再报作用域错误。
+#   语义：PM 在组内互斥（每组只能选一个），故 max 的 clamp 语义
+#         （value = max(value, X)，从 0 起）恰好得到「各建筑基准值的最大值」。
+rejob_uc_pm_base_country = {
+	value = 0
+	if = {
+		limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_labour } } }
+		max = 1
+	}
+	if = {
+		limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_barbed_wire_fences } } }
+		max = 2
+	}
+	if = {
+		limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_electric_fencing } } }
+		max = 4
+	}
+	if = {
+		limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_upper } } }
+		max = 40
+	}
+}
+
+# 国家视角：基准值的【最小值】（用于判断各建筑生产方式是否一致）
+#   ★ 第九轮：同样改为「逐个 PM 判断」，避免 list 子句的作用域陷阱。
+#   ★ 哨兵值 9999999 必须写在 if 内部 —— 否则一旦没有任何 PM 命中，
+#     哨兵值会残留，界面显示成 999999900%，并让「是否一致」的判等永远为假。
+rejob_uc_pm_base_min_country = {
+	value = 0
+	if = {
+		limit = { rejob_has_unemployment_center = yes }
+		value = 9999999
+		if = {
+			limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_labour } } }
+			min = 1
+		}
+		if = {
+			limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_barbed_wire_fences } } }
+			min = 2
+		}
+		if = {
+			limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_electric_fencing } } }
+			min = 4
+		}
+		if = {
+			limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_upper } } }
+			min = 40
+		}
+	}
+}
+
+
+# ---------------------------------------------------------------------------
+# B1. 合计值（★ 合计不得为负：小于 0 就取 0）
+# ---------------------------------------------------------------------------
+
+# 建筑视角合计 = 基准值 + 调节值，下限 0
+rejob_uc_total_building = {
+	value = rejob_uc_pm_base_building
+	add = owner.var:rejob_offset
+	min = 0
+}
+
+# 日志显示用合计（国家视角）
+rejob_uc_total_country = {
+	value = rejob_uc_pm_base_country
+	add = var:rejob_offset
+	min = 0
+	if = {
+		limit = { rejob_uc_has_special_pm = yes }
+		value = 9999999
+	}
+}
+
+# 合计【最小值】：用于生产方式不一致时的范围下界
+rejob_uc_total_min_country = {
+	value = rejob_uc_pm_base_min_country
+	add = var:rejob_offset
+	min = 0
+	if = {
+		limit = { rejob_uc_has_special_pm = yes }
+		value = 9999999
+	}
+}
+
+
+# ---------------------------------------------------------------------------
+# C1. 应用层：实际写入建筑的修正量（★ 按职业分别计算 ★）
+#     ★ 关键（这是第四轮最严重的错误）★
+#       必须写成 max(调节值, -该职业的生产方式基准值)：
+#         · 正调节值 → 直接生效（调高死亡率）
+#         · 负调节值 → 最多只能抵消掉生产方式自带的部分，不会把合计压成负数
+#       若只写 max(offset, 0)，负调节值将完全失效（按钮"点了没反应"）。
+#
+#     ★ 第七轮：由「一个共用值」拆成「每职业一个」★
+#       因为各职业基准值不同（劳工 4~5、地主/资本家 44），
+#       共用一个下限会让基准值小的职业被压成负数。
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# ★ 2026-10-11 第九轮：rejob_uc_offset_effective_* 系列【已废弃并删除】★
+#   废弃原因（有 error.log 硬证据）：
+#     这三个脚本值内部用 min = rejob_uc_pm_base_*_negated 做下限截断，
+#     而该链最终会求值 rejob_uc_pm_base_building 中的
+#     has_active_production_method（只接受 building 作用域）。
+#     但 add_modifier 的 multiplier 是在【效果链顶层作用域】求值的，
+#     被 rejob_refresh_mortality（root = country）调用时即为 country，
+#     于是报「Wrong scope for trigger: country, expected building」。
+#
+#   替代方案（见 scripted_effects/rejob_mortality_effects.txt 的
+#   rejob_apply_uc_mortality_to_building）：
+#     multiplier = { value = owner.var:rejob_offset  min = <字面量> }
+#   即：只使用「变量 + 字面量」，作用域无关，任何调用点都不会出错。
+# ---------------------------------------------------------------------------
+
+
+# ============================================================================
+# 二、集中营 —— 州级（仅不可接触者 delicious）
+# ============================================================================
+
+# 生产方式基准值（root = 州 state）
+#   ★ 2026-10-11 第九轮：生产项目组（gulag_camp）的死亡率修正已按需求移除，
+#     基准值只统计「关押人群」组（gulag_pop）的 PM 自带值。
+#     pm_Auschviking_gasking（终极解决）已删除，故不再统计。
+rejob_camp_pm_base_in_state = {
+	value = 0
+	if = { limit = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_gulag_labour } }                    add = 1 }
+	if = { limit = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_barbed_wire_fences } }  add = 2 }
+	if = { limit = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_electric_fencing } }    add = 4 }
+}
+
+# 国家视角基准值
+#   ★ 2026-10-11 第九轮：改为「逐个 PM 判断」，与再就业中心侧完全对称。
+#     原因：原写法 every_scope_state = { max = rejob_camp_pm_base_in_state }
+#     中，list 子句内以【裸名】引用的脚本值会在【外层 country 作用域】求值，
+#     其内部的 any_scope_building 会遍历【全国】而非【本州】，语义偏差。
+#     改为 any_scope_state + any_scope_building 逐 PM 检测后语义明确。
+rejob_camp_pm_base_country = {
+	value = 0
+	if = {
+		limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_gulag_labour } } }
+		max = 1
+	}
+	if = {
+		limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_barbed_wire_fences } } }
+		max = 2
+	}
+	if = {
+		limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_electric_fencing } } }
+		max = 4
+	}
+}
+
+# 国家视角基准值【最小值】
+#   ★ 第九轮：同样改为逐个 PM 判断；哨兵值 9999999 写在 if 内部，
+#     避免无命中时残留导致界面显示 999999900%。
+rejob_camp_pm_base_min_country = {
+	value = 0
+	if = {
+		limit = { rejob_has_camp = yes }
+		value = 9999999
+		if = {
+			limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_gulag_labour } } }
+			min = 1
+		}
+		if = {
+			limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_barbed_wire_fences } } }
+			min = 2
+		}
+		if = {
+			limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_electric_fencing } } }
+			min = 4
+		}
+	}
+}
+
+# ★ 2026-10-11 第九轮：rejob_camp_pm_base_in_state_negated 已被
+#   rejob_camp_offset_effective 内联的逐 PM 下限取代，故删除以避免死代码。
+
+# 合计值（下限 0）
+rejob_camp_total_in_state = {
+	value = rejob_camp_pm_base_in_state
+	add = owner.var:rejob_offset
+	min = 0
+}
+
+rejob_camp_total_country = {
+	value = rejob_camp_pm_base_country
+	add = var:rejob_offset
+	min = 0
+	if = {
+		limit = { rejob_camp_has_special_pm = yes }
+		value = 9999999
+	}
+}
+
+# 合计【最小值】：生产方式不一致时的范围下界
+rejob_camp_total_min_country = {
+	value = rejob_camp_pm_base_min_country
+	add = var:rejob_offset
+	min = 0
+	if = {
+		limit = { rejob_camp_has_special_pm = yes }
+		value = 9999999
+	}
+}
+
+# 应用层：实际写入州的修正量（集中营只能挂州级）
+#   ★ 2026-10-11 第九轮重做：改为「字面量 + 变量」，作用域无关。
+#     原写法 min = rejob_camp_pm_base_in_state_negated 会引用需要遍历建筑的
+#     脚本值；虽然集中营侧用的是 any_scope_building（country 作用域也合法），
+#     但为与再就业中心侧统一、并彻底规避 list 作用域陷阱，此处改为逐 PM 精确下限。
+rejob_camp_offset_effective = {
+	value = owner.var:rejob_offset
+	# 下限 = -当前关押人群 PM 的基准值（1 / 2 / 4），保证合计最低为 0
+	if = {
+		limit = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_gulag_labour } }
+		min = -1
+	}
+	else_if = {
+		limit = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_barbed_wire_fences } }
+		min = -2
+	}
+	else_if = {
+		limit = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_electric_fencing } }
+		min = -4
+	}
+}

@@ -1,0 +1,97 @@
+﻿# ============================================================================
+# 失业人群管理中心（整合版日志条目）
+# ----------------------------------------------------------------------------
+# root = 拥有该日志的国家（Country）
+#
+# 激活方式：由决议 / on_action 显式 add_journal_entry（OGAS 同款做法）。
+# 不要给本日志添加 is_shown_when_inactive / possible —— 实测在本 mod 组合下
+# 该自动激活机制不可靠（详见 README「开发记录」）。
+#
+# 重复点击（对应需求 2）：决议 rejob_open_management_decision 已改为可重复点击 ——
+#   日志未开启 → 直接 add_journal_entry；
+#   日志已开启 → 执行 rejob_reset_all，把三个变量复位为默认值。
+# 因为 V3 脚本没有「删除日志条目」的效果，故用「就地复位」实现等价效果。
+#
+# 按钮分组顺序即界面显示顺序，组间用分隔注释标记，便于后续维护：
+#   A 死亡率调节 → B 死亡率生效开关 → C 决议按钮
+#   → D 产出比例调节 → E 产出比例生效开关
+#
+# ★ 界面网格规则（决定按钮排列写法，2026-10-18 实测确认）：
+#   gui/journal_entry.gui 的 GetScriptedButtons 为
+#       dynamicgridbox { datamodel_wrap = 2  flipdirection = yes }
+#   即【每行 2 个、按行填充（先左后右、再下一行）】。
+#   因此：脚本里的书写顺序 = 界面显示顺序，且相邻两个按钮落在同一行。
+#   据此把 A / D 两组排成「同行一减一加（左减右加）、数值从小到大自上而下」。
+# ============================================================================
+
+je_rejob_management = {
+	icon = "gfx/interface/icons/event_icons/event_skull.dds"
+	group = je_group_internal_affairs
+
+	# ------------------------------------------------------------------------
+	# A. 死亡率调节按钮
+	#   ★ 2026-10-18 排列规则（需求方要求）：
+	#     界面网格为 datamodel_wrap = 2 + flipdirection = yes（每行 2 个，按行填充），
+	#     因此脚本里的顺序 = 界面顺序，且【每两个相邻按钮占据同一行】。
+	#     排列目标：同行一减一加（左减右加），数值从小到大自上而下。
+	#     故写成「-10, +10 / -100, +100 / -1000, +1000」，最后单独一行放重置。
+	# ------------------------------------------------------------------------
+	scripted_button = rejob_mortality_minus_10
+	scripted_button = rejob_mortality_plus_10
+	scripted_button = rejob_mortality_minus_100
+	scripted_button = rejob_mortality_plus_100
+	scripted_button = rejob_mortality_minus_1000
+	scripted_button = rejob_mortality_plus_1000
+	scripted_button = rejob_mortality_reset
+
+	# ------------------------------------------------------------------------
+	# B. 生效开关（决定调节值作用于哪座建筑）
+	# ------------------------------------------------------------------------
+	scripted_button = rejob_toggle_apply_uc
+	scripted_button = rejob_toggle_apply_camp
+
+	# ------------------------------------------------------------------------
+	# C. 决议按钮（原 mod 的两个决议 + 本 mod 的迁移决议）
+	#   ★ 需求方要求：保持它们原有的相对顺序，且【排在新增按钮之前】。
+	# ------------------------------------------------------------------------
+	scripted_button = rejob_btn_decision_066
+	scripted_button = rejob_btn_decision_067
+	scripted_button = rejob_btn_decision_migration
+
+	# ------------------------------------------------------------------------
+	# D. 石油 / 橡胶产出比例（0 = 纯橡胶，100 = 纯石油）
+	#   ★ 2026-10-18 排列规则同 A 组：同行一减一加（左减右加），数值从小到大。
+	#     故写成「-1, +1 / -10, +10 / -100, +100」，最后单独一行放重置。
+	# ------------------------------------------------------------------------
+	scripted_button = rejob_oil_minus_1
+	scripted_button = rejob_oil_plus_1
+	scripted_button = rejob_oil_minus_10
+	scripted_button = rejob_oil_plus_10
+	scripted_button = rejob_oil_minus_100
+	scripted_button = rejob_oil_plus_100
+	scripted_button = rejob_oil_reset
+
+	# ------------------------------------------------------------------------
+	# E. 产出比例生效开关（新增 · 排在最后；决定比例作用于哪座建筑）
+	# ------------------------------------------------------------------------
+	scripted_button = rejob_toggle_apply_oil_uc
+	scripted_button = rejob_toggle_apply_oil_camp
+
+	immediate = {
+		rejob_default_mortality = yes
+	}
+
+	status_desc = {
+		desc = rejob_management_status
+	}
+
+	on_monthly_pulse = {
+		effect = {
+			rejob_refresh_mortality = yes
+			rejob_refresh_oil_balance = yes
+		}
+	}
+
+	should_be_pinned_by_default_uninvolved_or_context = yes
+	weight = 10000
+}

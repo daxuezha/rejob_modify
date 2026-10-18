@@ -1,0 +1,437 @@
+﻿# ============================================================================
+# 再就业中心（整合版）· 死亡率调节 · 脚本效果
+# root = 国家（Country）
+# ----------------------------------------------------------------------------
+# 开关变量（均在国家作用域）：
+#   rejob_offset      —— 调节值，单位同 state_mortality_mult（0.01 = 1%）
+#   rejob_apply_uc    —— 是否让调节值作用于「再就业中心」（1/0）
+#   rejob_apply_camp  —— 是否让调节值作用于「集中营」（1/0）
+#
+# ★ 2026-10-11 第六轮重做（本文件是需求 1 的核心）★
+#
+#   第五轮曾把修正退回「州级」，理由是第四轮的建筑级方案有三个 bug。
+#   但「州级 + 按职业」并不能满足需求 1c ——
+#   再就业中心雇佣 laborers / aristocrats / capitalists，
+#   这些职业在州里到处都是，挂州级修正会把全州同类职业的死亡率一起改掉。
+#   所以本轮重新回到【建筑级】，但把第四轮那三个 bug 的根因逐一修掉：
+#
+#     bug A) 建筑拆除后修正残留
+#       第四轮写法：
+#         every_scope_state = {
+#             every_scope_building = {
+#                 limit = { is_building_type = ... has_modifier = ... }
+#                 remove_modifier = ...
+#             }
+#         }
+#       问题：limit 里同时要求「是某建筑类型」——
+#             建筑一旦被拆除/改建，该州内就再也找不到匹配对象，
+#             remove_modifier 永远不执行 → 修正残留。
+#       修法：limit 只用【静态定义】的 is_building_group 做收窄，
+#             再加 has_modifier 守卫。building_group 是静态定义、
+#             不会因拆除而消失，因此永远能匹配上、永远能清掉。
+#             （而且修正本就挂在建筑对象上，建筑没了修正也随之消失，
+#               不存在跨对象残留）
+#
+#     bug B) 修正类型未登记 → Unknown modifier type → 污染修正数据库
+#       第四轮用了 state_clerks / state_bureaucrats / state_engineers
+#       这类官方脚本未登记的键。
+#       修法：只用「官方已登记」或「本 mod 已登记」的键 ——
+#             building_laborers_mortality_mult（官方）
+#             building_aristocrats / capitalists_mortality_mult（本 mod 登记）
+#
+#     bug C) 建筑 UI 显示错乱
+#       第四轮同时存在「非法 lens = government」（见 building_groups）
+#       与「未登记修正类型」，两者都会破坏建筑面板的数据查询。
+#       修法：lens 改为合法的 development；修正类型全部登记。
+#
+#   现在采用的模型：
+#     · 再就业中心 → 建筑级 building_<职业>_mortality_mult（按职业，只影响本建筑雇员）
+#     · 集中营     → 州级 state_delicious_mortality_mult（自定义人口，仅集中营雇佣）
+# ============================================================================
+
+# 初始化 / 重置：把三个变量置为默认值，并刷新一次
+# 注意：两个生效开关默认为「关闭」（0），玩家需自行开启后调节才会生效。
+rejob_default_mortality = {
+	if = {
+		limit = { NOT = { has_variable = rejob_offset } }
+		set_variable = { name = rejob_offset  value = 0 }
+	}
+	if = {
+		limit = { NOT = { has_variable = rejob_apply_uc } }
+		set_variable = { name = rejob_apply_uc  value = 0 }
+	}
+	if = {
+		limit = { NOT = { has_variable = rejob_apply_camp } }
+		set_variable = { name = rejob_apply_camp  value = 0 }
+	}
+	# ★ v2：石油/橡胶产出比例的三个变量
+	#   rejob_oil_ratio 默认 100（= 纯石油），保证不开启时行为与改动前一致
+	if = {
+		limit = { NOT = { has_variable = rejob_oil_ratio } }
+		set_variable = { name = rejob_oil_ratio  value = 100 }
+	}
+	if = {
+		limit = { NOT = { has_variable = rejob_apply_oil_uc } }
+		set_variable = { name = rejob_apply_oil_uc  value = 0 }
+	}
+	if = {
+		limit = { NOT = { has_variable = rejob_apply_oil_camp } }
+		set_variable = { name = rejob_apply_oil_camp  value = 0 }
+	}
+	rejob_refresh_mortality = yes
+}
+
+# ---------------------------------------------------------------------------
+# 完全重置（对应「重复点击日志条目按钮」）
+#   先移除三个变量，再调用 rejob_default_mortality 走一遍全新初始化。
+#   效果等价于「删掉旧日志条目、重新生成一条全新的」—— 所有值回到默认状态。
+#   与 rejob_reset_offset 的区别：后者只清调节值，不动两个开关。
+#
+#   为什么不用「真正删除日志条目」：
+#   Victoria 3 的脚本效果里没有删除日志条目的能力
+#   （invalidate_journal_entry / complete_journal_entry / fail_journal_entry
+#    都是控制台命令，不是脚本效果；CWTools 的 effects.cwt 亦无对应项）。
+# ---------------------------------------------------------------------------
+rejob_reset_all = {
+	remove_variable = rejob_offset
+	remove_variable = rejob_apply_uc
+	remove_variable = rejob_apply_camp
+	remove_variable = rejob_oil_ratio
+	remove_variable = rejob_apply_oil_uc
+	remove_variable = rejob_apply_oil_camp
+	rejob_default_mortality = yes
+}
+
+# 重置调节值（只把 rejob_offset 归零，不动两个开关）
+rejob_reset_offset = {
+	set_variable = { name = rejob_offset  value = 0 }
+	rejob_refresh_mortality = yes
+}
+
+# ---------------------------------------------------------------------------
+# 核心刷新效果
+#   ★ 需求 1：修正必须挂在【建筑】上（building_<职业>_mortality_mult），
+#     这样只影响「被该建筑招募的人」，不会波及全州同职业人口。
+#
+#   ★ 清除阶段必须「无条件遍历」，只靠 has_modifier 守卫：
+#     绝不能在 limit 里要求「该建筑是某类型」——否则建筑一被拆除/改建，
+#     limit 就永远匹配不上，remove_modifier 永不执行，修正永久残留。
+#     （这是第四轮最隐蔽的 bug 根因）
+#
+#   ★ 性能说明：
+#     遍历时用 is_building_group 收窄到本 mod 的两个建筑组。
+#     building_group 是静态定义（不像具体建筑会被拆除），
+#     所以这个 limit 永远可解析，不会造成「清不掉」的问题；
+#     同时又避免了遍历全国所有建筑的开销。
+# ---------------------------------------------------------------------------
+rejob_refresh_mortality = {
+	# 第一步：无条件清除再就业中心的三个职业容器
+	#   ★ 必须「无条件遍历」+ 只靠 has_modifier 守卫：
+	#     绝不能在 limit 里要求「该建筑是某类型」——否则建筑一被拆除/改建，
+	#     limit 就永远匹配不上，remove_modifier 永不执行，修正永久残留。
+	#     （这是第四轮最隐蔽的 bug 根因）
+	every_scope_building = {
+		limit = {
+			is_building_group = rejob_unemployment_center
+		}
+		if = {
+			limit = { has_modifier = rejob_uc_mortality_laborers }
+			remove_modifier = rejob_uc_mortality_laborers
+		}
+		if = {
+			limit = { has_modifier = rejob_uc_mortality_aristocrats }
+			remove_modifier = rejob_uc_mortality_aristocrats
+		}
+		if = {
+			limit = { has_modifier = rejob_uc_mortality_capitalists }
+			remove_modifier = rejob_uc_mortality_capitalists
+		}
+	}
+
+	# 第一步（续）：清除集中营动态修正（州级 · 同样无条件）
+	every_scope_state = {
+		if = {
+			limit = { has_modifier = rejob_camp_mortality_dynamic }
+			remove_modifier = rejob_camp_mortality_dynamic
+		}
+	}
+
+	# 第二步：重新施加「再就业中心」的修正（建筑级 · 只挂实际雇佣的职业）
+	#   ★ 第七轮：改为「按生产方式判断雇佣了哪些职业」，逐个挂独立容器。
+	#     这样建筑面板只会列出该建筑真正雇佣的职业，不会出现多余条目。
+	#   ★ 注意：这里【不再】做国家级的 rejob_uc_has_special_pm 判断 ——
+	#     那个判断会在「只要有任意一座建筑用了重型化学工艺」时
+	#     屏蔽掉全国所有建筑；正确的粒度是逐建筑判断，
+	#     由 rejob_apply_uc_mortality_to_building 内部的
+	#     rejob_uc_this_building_has_special_pm 负责。
+	if = {
+		limit = {
+			var:rejob_apply_uc = 1
+			rejob_has_unemployment_center = yes
+		}
+		every_scope_building = {
+			limit = {
+				is_building_group = rejob_unemployment_center
+			}
+			rejob_apply_uc_mortality_to_building = yes
+		}
+	}
+
+	# 第三步：重新施加「集中营」的修正（州级 · 仅不可接触者）
+	if = {
+		limit = {
+			var:rejob_apply_camp = 1
+			rejob_has_camp = yes
+			NOT = { rejob_camp_has_special_pm = yes }
+		}
+		every_scope_state = {
+			limit = {
+				any_scope_building = {
+					is_building_type = building_gulag_logging
+				}
+			}
+			if = {
+				limit = { rejob_camp_offset_effective != 0 }
+				add_modifier = {
+					name = rejob_camp_mortality_dynamic
+					multiplier = rejob_camp_offset_effective
+				}
+			}
+		}
+	}
+
+	# 第四步：刷新石油 / 橡胶产出比例修正
+	#   （比例开关关闭时不产生任何修正，故此处可直接调用）
+	rejob_refresh_oil_balance = yes
+}
+
+# ---------------------------------------------------------------------------
+# ★ 2026-10-11 第七轮新增：刷新「单座再就业中心」的死亡率修正 ★
+#   root = 建筑（building）
+#
+#   用途：
+#     1) on_production_method_changed（Root = Building）切换生产方式时，
+#        只刷新「这一座」建筑 —— 无需全国重算，性能友好；
+#     2) 建筑面板显示随之更新，不再残留旧职业的条目。
+#
+#   逻辑 = 先清三个职业容器（无条件 + has_modifier 守卫），
+#          再按当前生产方式实际雇佣的职业重新挂。
+# ---------------------------------------------------------------------------
+rejob_refresh_uc_building_mortality = {
+	# 清除（无条件 + 守卫，绝不依赖建筑类型/生产方式）
+	if = {
+		limit = { has_modifier = rejob_uc_mortality_laborers }
+		remove_modifier = rejob_uc_mortality_laborers
+	}
+	if = {
+		limit = { has_modifier = rejob_uc_mortality_aristocrats }
+		remove_modifier = rejob_uc_mortality_aristocrats
+	}
+	if = {
+		limit = { has_modifier = rejob_uc_mortality_capitalists }
+		remove_modifier = rejob_uc_mortality_capitalists
+	}
+
+	# 重新施加：仅当「开关已开启 + 本建筑非特殊生产方式」时才挂
+	#   （特殊生产方式 = 重型化学工艺，其 PM 自带 9999999，无需再叠加）
+	if = {
+		limit = {
+			owner.var:rejob_apply_uc = 1
+		}
+		rejob_apply_uc_mortality_to_building = yes
+	}
+}
+
+# ---------------------------------------------------------------------------
+# ★ 2026-10-11 第七轮新增：给「单座再就业中心」按实际雇佣职业挂死亡率容器 ★
+#   root = 建筑（building）
+#
+#   每个职业单独判断，避免「容器里有 3 个职业但只雇佣 1 个」的显示错误。
+#   依据：rejob_uc_employs_* 触发器读取该建筑 pmg_rejob_uc_pop 组的当前生产方式。
+# ---------------------------------------------------------------------------
+rejob_apply_uc_mortality_to_building = {	# ★ 2026-10-11 第九轮重做（关键修复）★
+	#   原写法：multiplier = rejob_uc_offset_effective_<职业>
+	#   该脚本值内部有 min = rejob_uc_pm_base_<职业>_negated，
+	#   最终会读到 rejob_uc_pm_base_building —— 其中含
+	#   has_active_production_method（只接受 building 作用域）。
+	#
+	#   但 add_modifier 的 multiplier 是在【效果链顶层作用域】求值的：
+	#   本效果被 rejob_refresh_mortality（root = country）调用时即为 country，
+	#   于是 error.log 刷出 160 条：
+	#     Error: has_active_production_method trigger
+	#            [ Wrong scope for trigger: country, expected building ]
+	#   修正链被中断 → 动态死亡率完全不生效（问题 2 的根因）。
+	#
+	#   修法：multiplier 只用【字面量 + owner.var:】，
+	#         不再引用任何需要 building 作用域的脚本值。
+	#         下限按「当前岗位构成 PM 的实际基准值」逐 PM 精确给出。
+	#   注：pm_rejob_uc_gasking（重型化学工艺）已删除，无需再做特殊判断。
+
+	# ---- 劳工：基准值随岗位构成 PM 变化（1 / 2 / 4）----
+	if = {
+		limit = { has_active_production_method = pm_rejob_uc_labour }
+		if = {
+			limit = { owner.var:rejob_offset != 0 }
+			add_modifier = {
+				name = rejob_uc_mortality_laborers
+				multiplier = { value = owner.var:rejob_offset  min = -1 }
+			}
+		}
+	}
+	else_if = {
+		limit = { has_active_production_method = pm_rejob_uc_barbed_wire_fences }
+		if = {
+			limit = { owner.var:rejob_offset != 0 }
+			add_modifier = {
+				name = rejob_uc_mortality_laborers
+				multiplier = { value = owner.var:rejob_offset  min = -2 }
+			}
+		}
+	}
+	else_if = {
+		limit = { has_active_production_method = pm_rejob_uc_electric_fencing }
+		if = {
+			limit = { owner.var:rejob_offset != 0 }
+			add_modifier = {
+				name = rejob_uc_mortality_laborers
+				multiplier = { value = owner.var:rejob_offset  min = -4 }
+			}
+		}
+	}
+
+	# ---- 地主 / 资本家：基准值 40 ----
+	if = {
+		limit = { has_active_production_method = pm_rejob_uc_upper }
+		if = {
+			limit = { owner.var:rejob_offset != 0 }
+			add_modifier = {
+				name = rejob_uc_mortality_aristocrats
+				multiplier = { value = owner.var:rejob_offset  min = -40 }
+			}
+		}
+		if = {
+			limit = { owner.var:rejob_offset != 0 }
+			add_modifier = {
+				name = rejob_uc_mortality_capitalists
+				multiplier = { value = owner.var:rejob_offset  min = -40 }
+			}
+		}
+	}
+}
+
+# ============================================================================
+# ★ 2026-10-18 【v2 方案】石油 / 橡胶产出比例 —— 正式实现 ★
+#   root = 国家（Country）
+# ----------------------------------------------------------------------------
+# 设计要点：
+#   1) 石油 PM 同时声明 2000 石油 + 2000 橡胶（workforce_scaled）
+#      ⇒ 两者都天然随「建筑等级 × 就业率」缩放，无需手工补偿
+#   2) 用 _mult 按 ratio 缩放两者：_mult 语义 = ×(1 + 值)
+#        石油倍率 = f − 1   （f = ratio/100）
+#        橡胶倍率 = −f
+#   3) 沿用死亡率的成功写法：
+#      · 清除阶段「无条件遍历 + has_modifier 守卫」（防拆除后残留）
+#      · 只对「当前处于石油 PM」的建筑施加
+#      · multiplier 只用「字面量 + owner.var:」，不引用需 building 作用域的脚本值
+#        （第九轮 160 条 Wrong scope 报错的根因）
+#
+#   开关：rejob_apply_oil_uc / rejob_apply_oil_camp（默认 0 = 关闭）
+#   比例：rejob_oil_ratio，范围 [0,100]，默认 100（= 纯石油，与改动前一致）
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# 刷新：全国所有「再就业中心」与「集中营」的产出比例修正
+# ---------------------------------------------------------------------------
+rejob_refresh_oil_balance = {
+	# 第一步：无条件清除 4 个容器（仅靠 has_modifier 守卫）
+	every_scope_building = {
+		limit = { is_building_group = rejob_unemployment_center }
+		if = { limit = { has_modifier = rejob_uc_oil_mult }     remove_modifier = rejob_uc_oil_mult }
+		if = { limit = { has_modifier = rejob_uc_rubber_mult }  remove_modifier = rejob_uc_rubber_mult }
+	}
+	every_scope_building = {
+		limit = { is_building_group = gulag_industry }
+		if = { limit = { has_modifier = rejob_camp_oil_mult }    remove_modifier = rejob_camp_oil_mult }
+		if = { limit = { has_modifier = rejob_camp_rubber_mult } remove_modifier = rejob_camp_rubber_mult }
+	}
+
+	# 第二步：再就业中心（开关开启 + 该建筑处于石油 PM）
+	if = {
+		limit = {
+			has_variable = rejob_apply_oil_uc
+			var:rejob_apply_oil_uc = 1
+			rejob_has_unemployment_center = yes
+		}
+		every_scope_building = {
+			limit = {
+				is_building_group = rejob_unemployment_center
+				has_active_production_method = pm_rejob_uc_oil
+			}
+			rejob_apply_oil_to_uc_building = yes
+		}
+	}
+
+	# 第三步：集中营（同理）
+	if = {
+		limit = {
+			has_variable = rejob_apply_oil_camp
+			var:rejob_apply_oil_camp = 1
+			rejob_has_camp = yes
+		}
+		every_scope_building = {
+			limit = {
+				is_building_group = gulag_industry
+				has_active_production_method = pm_gulag_oil
+			}
+			rejob_apply_oil_to_camp_building = yes
+		}
+	}
+}
+
+# ---------------------------------------------------------------------------
+# 单建筑：再就业中心（root = 建筑）
+#   石油倍率 = f − 1 ；橡胶倍率 = −f
+#   ratio = 100 时两者都为 0/无操作 ⇒ 与改动前完全一致
+# ---------------------------------------------------------------------------
+rejob_apply_oil_to_uc_building = {
+	# 石油倍率 = ratio/100 − 1
+	add_modifier = {
+		name = rejob_uc_oil_mult
+		multiplier = {
+			value = owner.var:rejob_oil_ratio
+			divide = 100
+			subtract = 1
+		}
+	}
+	# 橡胶倍率 = −ratio/100
+	add_modifier = {
+		name = rejob_uc_rubber_mult
+		multiplier = {
+			value = owner.var:rejob_oil_ratio
+			divide = 100
+			multiply = -1
+		}
+	}
+}
+
+# ---------------------------------------------------------------------------
+# 单建筑：集中营（root = 建筑）—— 与上面同构
+# ---------------------------------------------------------------------------
+rejob_apply_oil_to_camp_building = {
+	add_modifier = {
+		name = rejob_camp_oil_mult
+		multiplier = {
+			value = owner.var:rejob_oil_ratio
+			divide = 100
+			subtract = 1
+		}
+	}
+	add_modifier = {
+		name = rejob_camp_rubber_mult
+		multiplier = {
+			value = owner.var:rejob_oil_ratio
+			divide = 100
+			multiply = -1
+		}
+	}
+}

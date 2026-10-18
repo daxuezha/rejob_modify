@@ -1,35 +1,34 @@
-rejob_uc_camp = {
+﻿gulag_camp = {
 	texture = "gfx/interface/icons/generic_icons/mixed_icon_base.dds"
 	ai_selection = most_productive
 
 	production_methods = {
-		pm_rejob_uc_shao
-		pm_rejob_uc_gulag
-		pm_rejob_uc_oil
-		pm_rejob_uc_gas
-		pm_rejob_uc_gasking
-		pm_rejob_uc_stop
+	    pm_Auschviking_shao
+		pm_gulag
+		pm_gulag_oil
+		pm_Auschviking_gas
+		pm_gulag_stop
 	}
 }
 
-rejob_uc_pop = {
+gulag_pop = {
 	texture = "gfx/interface/icons/generic_icons/mixed_icon_base.dds"
 	ai_selection = most_productive
 
 	production_methods = {
-		pm_rejob_uc_labour
-		pm_rejob_uc_barbed_wire_fences
-		pm_rejob_uc_electric_fencing
-		pm_rejob_uc_upper
+		pm_gulag_labour
+        pm_Auschviking_barbed_wire_fences
+        pm_Auschviking_electric_fencing
+		pm_gulag_upper
 	}
 }
 
-rejob_uc_migration = {
+gulag_migration = {
 	texture = "gfx/interface/icons/generic_icons/mixed_icon_base.dds"
 	ai_selection = most_productive
 
 	production_methods = {
-		pm_rejob_uc_local
-		pm_rejob_uc_country
+		pm_gulag_local
+		pm_gulag_country
 	}
 }

@@ -1,0 +1,111 @@
+﻿l_simp_chinese:
+
+ # ===========================================================================
+ # 旧建筑：集中营（原「再就业中心」）
+ # 说明：该建筑在原模组中名为「再就业中心」，本整合版按建筑本意改称「集中营」，
+ #       其生产方式、生产方式组等显示文本同步调整为集中营语境。
+ # ===========================================================================
+ building_gulag_logging:0 "集中营"
+ building_gulag_logging_lens_option:0 "扩建$building_gulag_logging$"
+
+ pm_Auschviking_shao:0 "集中营:瓷器生产"
+ pm_gulag:0 "集中营:肉类生产"
+ pm_gulag_oil:0 "集中营:炼油产业"
+ pm_Auschviking_gas:0 "集中营:化肥生产"
+ pm_Auschviking_gasking:0 "（已移除）"
+ pm_gulag_stop:0 "停止运转"
+ pm_gulag_labour:0 "基础关押"
+ pm_Auschviking_barbed_wire_fences:0 "集中营:铁丝网"
+ pm_Auschviking_electric_fencing:0 "集中营:电子围栏"
+ pm_gulag_upper:0 "上层关押"
+ pm_gulag_stop2:0 "停止运转"
+ pm_gulag_local:0 "服务当地"
+ pm_gulag_country:0 "服务全国"
+
+ gulag_camp:0 "切换运转方式"
+ gulag_pop:0 "切换关押人群"
+ gulag_migration:0 "切换服务区域"
+
+ # ===========================================================================
+ # 不可接触者（delicious）
+ # ===========================================================================
+ delicious:0 "@delicious!$delicious_no_icon$"
+ delicious_only_icon:0 "@delicious!"
+ delicious_no_icon:0 "不可接触者"
+ delicious_desc:0 "无法被社会容纳之人将被清除，彻底而永久。"
+
+ delicious_QUALIFICATIONS_DESC:0 "任何人群都能成为#v $delicious$#!。[concept_literacy]越高，转变潜力就越高。#v $laborers$#!特别容易成为#v $delicious$#!。"
+
+ # ===========================================================================
+ # 修正类型显示
+ # ===========================================================================
+ state_delicious_mortality_mult:0 "$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]"
+ state_delicious_mortality_mult_desc:0 "对$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚"
+ building_delicious_mortality_mult:0 "$state_delicious_mortality_mult$"
+ building_delicious_mortality_mult_desc:0 "$state_delicious_mortality_mult_desc$"
+ building_group_gulag_industry_standard_of_living_add:0 "$delicious$[concept_sol]"
+ building_group_gulag_industry_standard_of_living_add_desc:0 "对$building_group_gulag_industry_standard_of_living_add$的增益或惩罚"
+
+ # ===========================================================================
+ # 大迁徙法令
+ # ===========================================================================
+ 大迁徙_desc:0 "推动地区成为大规模的移民目的地"
+ # ===========================================================================
+ # 自定义修正类型的本地化（本 mod 在 modifier_type_definitions 中登记的）
+ # ---------------------------------------------------------------------------
+ # ★ 关键规则：修正类型的 loc key 就是【修正类型名本身】。
+ #   例：香草 building_laborers_mortality_mult: "$state_laborers_mortality_mult$"
+ #   缺失时 tooltip 会直接显示原始 ID。
+ #
+ #   注意区分命名空间：
+ #     · 修正【类型】      → building_group_<组名>_<后缀>   （如 building_group_bg_government_tax_mult）
+ #     · 建筑【组名】本身  → <组名>                        （如 bg_government）
+ # ===========================================================================
+
+ # --- delicious（不可接触者）相关修正类型 ---
+ #   注：building_delicious_mortality_mult 已在本文件第 44-45 行定义，此处不重复。
+
+ building_employment_delicious_add:0 "$delicious$/级"
+ building_employment_delicious_add_desc:0 "修正建筑每等级可以雇佣的$delicious$数量"
+
+ country_delicious_pol_str_mult:0 "$delicious$[concept_political_strength]"
+ country_delicious_pol_str_mult_desc:0 "对$delicious$[Concept('concept_political_strength','$concept_political_strength$')]的增益或惩罚"
+
+ # country_delicious_voting_power_add：香草无 concept_voting_power 概念，
+ # 改用香草既有的 concept_voting_rights（"投票权"）。
+ country_delicious_voting_power_add:0 "$delicious$[concept_voting_rights]"
+ country_delicious_voting_power_add_desc:0 "对$delicious$[concept_voting_rights]的增益或惩罚"
+
+ # --- 按建筑组 × 职业的 delicious 死亡率（14 个）---
+ #   显示格式对齐香草 building_group_bg_manufacturing_laborers_mortality_mult
+ building_group_bg_construction_delicious_mortality_mult:0 "建筑业$delicious$$concept_pop_growth_mortality$"
+ building_group_bg_construction_delicious_mortality_mult_desc:0 "对建筑业$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚"
+ building_group_bg_agriculture_delicious_mortality_mult:0 "农业$delicious$$concept_pop_growth_mortality$"
+ building_group_bg_agriculture_delicious_mortality_mult_desc:0 "对农业$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚"
+ building_group_bg_ranching_delicious_mortality_mult:0 "牧场$delicious$$concept_pop_growth_mortality$"
+ building_group_bg_ranching_delicious_mortality_mult_desc:0 "对牧场$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚"
+ building_group_bg_plantations_delicious_mortality_mult:0 "种植园$delicious$$concept_pop_growth_mortality$"
+ building_group_bg_plantations_delicious_mortality_mult_desc:0 "对种植园$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚"
+ building_group_bg_mining_delicious_mortality_mult:0 "矿井$delicious$$concept_pop_growth_mortality$"
+ building_group_bg_mining_delicious_mortality_mult_desc:0 "对矿井$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚"
+ building_group_bg_manufacturing_delicious_mortality_mult:0 "制造业$delicious$$concept_pop_growth_mortality$"
+ building_group_bg_manufacturing_delicious_mortality_mult_desc:0 "对制造业$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚"
+ building_group_bg_light_industry_delicious_mortality_mult:0 "轻工业$delicious$$concept_pop_growth_mortality$"
+ building_group_bg_light_industry_delicious_mortality_mult_desc:0 "对轻工业$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚"
+ building_group_bg_heavy_industry_delicious_mortality_mult:0 "重工业$delicious$$concept_pop_growth_mortality$"
+ building_group_bg_heavy_industry_delicious_mortality_mult_desc:0 "对重工业$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚"
+ building_group_bg_whaling_delicious_mortality_mult:0 "捕鲸业$delicious$$concept_pop_growth_mortality$"
+ building_group_bg_whaling_delicious_mortality_mult_desc:0 "对捕鲸业$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚"
+ building_group_bg_fishing_delicious_mortality_mult:0 "渔业$delicious$$concept_pop_growth_mortality$"
+ building_group_bg_fishing_delicious_mortality_mult_desc:0 "对渔业$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚"
+ building_group_bg_oil_extraction_delicious_mortality_mult:0 "石油精炼厂$delicious$$concept_pop_growth_mortality$"
+ building_group_bg_oil_extraction_delicious_mortality_mult_desc:0 "对石油精炼厂$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚"
+ building_group_bg_infrastructure_delicious_mortality_mult:0 "基础设施$delicious$$concept_pop_growth_mortality$"
+ building_group_bg_infrastructure_delicious_mortality_mult_desc:0 "对基础设施$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚"
+
+ # --- 按建筑组 × delicious 的生活水平（2 个）---
+ building_group_bg_mining_delicious_standard_of_living_add:0 "矿井$delicious$[concept_sol]"
+ building_group_bg_mining_delicious_standard_of_living_add_desc:0 "对矿井$delicious$[concept_sol]的增益或惩罚"
+ building_group_bg_manufacturing_delicious_standard_of_living_add:0 "制造业$delicious$[concept_sol]"
+ building_group_bg_manufacturing_delicious_standard_of_living_add_desc:0 "对制造业$delicious$[concept_sol]的增益或惩罚"
+

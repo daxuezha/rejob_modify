@@ -1,0 +1,173 @@
+﻿# ============================================================================
+# 再就业中心（整合版）· 脚本触发器
+# root = 国家（Country）
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# 建筑存在性
+# ---------------------------------------------------------------------------
+
+# 新建筑：再就业中心
+rejob_has_unemployment_center = {
+	any_scope_state = {
+		any_scope_building = {
+			is_building_type = building_rejob_unemployment_center
+		}
+	}
+}
+
+# 旧建筑：集中营（原「再就业中心」）
+rejob_has_camp = {
+	any_scope_state = {
+		any_scope_building = {
+			is_building_type = building_gulag_logging
+		}
+	}
+}
+
+# 任一建筑存在（用于日志的开启条件）
+rejob_has_any_center = {
+	OR = {
+		rejob_has_unemployment_center = yes
+		rejob_has_camp = yes
+	}
+}
+
+# ---------------------------------------------------------------------------
+# 特殊生产方式检测
+# 处于这些生产方式时，该建筑的州死亡率已由 PM 自身拉满（9,999,999），
+# 再叠加调节值没有意义，因此禁用调节按钮。
+# ---------------------------------------------------------------------------
+
+# ★ 2026-10-11 第九轮：pm_rejob_uc_gasking（重型化学工艺）已按需求删除，
+#   gulag 侧对应的 pm_Auschviking_gasking（终极解决）同步删除。
+#   两座建筑现在都不再有「特殊生产方式」。
+#
+#   下面三个触发器【保留定义】是为了不破坏既有引用链
+#   （scripted_effects / scripted_triggers / scripted_buttons 都在用），
+#   统一改为 always = no（恒为假）：
+#     · 按钮禁用逻辑永不命中 → 调节按钮不再被置灰；
+#     · 脚本值里的 9999999 覆盖分支永不触发。
+#   ★ 绝不能直接删掉定义 —— 那样会让引用方报
+#     "unknown scripted trigger" 并导致整条效果链静默失效。
+rejob_uc_has_special_pm = {
+	always = no
+}
+
+rejob_uc_this_building_has_special_pm = {
+	always = no
+}
+
+rejob_camp_has_special_pm = {
+	always = no
+}
+
+# ---------------------------------------------------------------------------
+# ★ 2026-10-11 第七轮新增：该建筑「当前生产方式实际雇佣了哪些职业」★
+#   root = 建筑（building）
+#
+#   依据：建筑的岗位构成组 pmg_rejob_uc_pop 的生产方式决定雇佣职业 ——
+#     pm_rejob_uc_labour / _barbed_wire_fences / _electric_fencing → laborers
+#     pm_rejob_uc_upper                                            → aristocrats + capitalists
+#   （见 common/production_methods/rejob_unemployment_center_pm.txt 的
+#     building_employment_<职业>_add 字段）
+#
+#   用途：脚本效果只给「真正雇佣的职业」挂对应死亡率容器，
+#         使建筑面板的显示与实际雇佣情况一致。
+#   注意：has_active_production_method 的作用域是 building
+#         （CWTools triggers.cwt:1155 ## scopes = { building }）。
+# ---------------------------------------------------------------------------
+
+rejob_uc_employs_laborers = {
+	OR = {
+		has_active_production_method = pm_rejob_uc_labour
+		has_active_production_method = pm_rejob_uc_barbed_wire_fences
+		has_active_production_method = pm_rejob_uc_electric_fencing
+	}
+}
+
+rejob_uc_employs_aristocrats = {
+	has_active_production_method = pm_rejob_uc_upper
+}
+
+rejob_uc_employs_capitalists = {
+	has_active_production_method = pm_rejob_uc_upper
+}
+
+# ---------------------------------------------------------------------------
+# 调节按钮共用的可用性判断
+# 只要「某个开关已开启 + 该建筑确实存在 + 该建筑未处于特殊生产方式」即可点击；
+# 两个条件都不满足时，全部调节按钮置灰。
+#
+# 说明：特殊生产方式（重型化学工艺 / 终极解决）自带 9999999 死亡率，
+#       此时再叠加调节值没有意义，因此对该建筑禁用调节。
+# ---------------------------------------------------------------------------
+rejob_mortality_buttons_possible = {
+	OR = {
+		AND = {
+			root.var:rejob_apply_uc = 1
+			rejob_has_unemployment_center = yes
+			NOT = { rejob_uc_has_special_pm = yes }
+		}
+		AND = {
+			root.var:rejob_apply_camp = 1
+			rejob_has_camp = yes
+			NOT = { rejob_camp_has_special_pm = yes }
+		}
+	}
+}
+
+# ---------------------------------------------------------------------------
+# ★ 2026-10-18【v2 方案】石油 / 橡胶产出比例 —— 按钮可用性
+#   与死亡率的写法同构：只要「某个比例开关已开启 + 对应建筑存在」即可点。
+# ---------------------------------------------------------------------------
+rejob_oil_buttons_possible = {
+	OR = {
+		AND = {
+			has_variable = rejob_apply_oil_uc
+			root.var:rejob_apply_oil_uc = 1
+			rejob_has_unemployment_center = yes
+		}
+		AND = {
+			has_variable = rejob_apply_oil_camp
+			root.var:rejob_apply_oil_camp = 1
+			rejob_has_camp = yes
+		}
+	}
+}
+
+# ---------------------------------------------------------------------------
+# ★ 2026-10-18【v3 修复】石油比例按钮的可用性
+# ---------------------------------------------------------------------------
+# ★ Bug 修复说明（需求方 2026-10-18 反馈「比例按钮被置灰」）：
+#   原写法把「开关已开启」这一条件也放进了 possible：
+#       rejob_oil_ratio_can_up = { rejob_oil_buttons_possible = yes  ratio < 100 }
+#   而 rejob_oil_buttons_possible 要求「某个比例开关已开启」，
+#   开关默认关闭 ⇒ 该条件恒为假 ⇒ 6 个 ± 按钮全部置灰，玩家无法先调比例。
+#
+#   正确语义（需求方要求）：开关只决定「是否施加修正」，不决定「能否调节数值」。
+#   ⇒ 因此这里只保留「存在任一相关建筑」这一条件。
+#
+#   注：ratio 的边界（0 / 100）仍通过 < 100 / > 0 控制，达到边界后对应方向按钮置灰，
+#       并且 effect 内还有第二道边界守卫，双保险、变量永不越界。
+# ---------------------------------------------------------------------------
+
+# 可上调：存在任一相关建筑 + 未达上限 100
+rejob_oil_ratio_can_up = {
+	rejob_has_any_center = yes
+	# 变量缺失时按默认值 100（= 纯石油）处理，使按钮读档后立即可用
+	OR = {
+		NOT = { has_variable = rejob_oil_ratio }
+		root.var:rejob_oil_ratio < 100
+	}
+}
+
+# 可下调：存在任一相关建筑 + 未达下限 0
+rejob_oil_ratio_can_down = {
+	rejob_has_any_center = yes
+	# 变量缺失时按默认值 100（= 纯石油）处理，使按钮读档后立即可用
+	OR = {
+		NOT = { has_variable = rejob_oil_ratio }
+		root.var:rejob_oil_ratio > 0
+	}
+}

@@ -1,0 +1,51 @@
+﻿# ★ 2026-10-14 R1：PMG 键补上官方约定的 pmg_ 前缀 ★
+#   依据：维基 /Building_modding 明文
+#     "Each production method group needs its own unique script name;
+#      by convention this is pmg_[script_name]."
+#   香草实证：197 个 PMG 键 100% 以 pmg_ 开头，无一例外。
+#   本 mod 原先 3 个键均无前缀，是唯一的特例。
+#
+#   动机：建筑统计面板（gui/production_methods.gui）按【建筑类型】聚合
+#   PMG 与可选 PM 数量（BuildingProductionMethodsEntry）；
+#   聚合依赖 PMG 的索引/分组。键名不符合约定时该聚合可能取不到上下文，
+#   表现为 debug.log 里的
+#     No context supplied ... 'BuildingProductionMethodsEntry'
+#     + FetchData failed ... GetNumAvailableOptionsForBuildingType
+#   进而使整个「按类型聚合」的列表退化为只显示第一排生产方式。
+#
+#   ★ 改名后同步修改了 common/buildings/rejob_unemployment_center.txt 的引用。
+#   ★ 原模组的 gulag_camp/pop/migration 未动（属另一 mod 的命名，单独评估）。
+pmg_rejob_uc_camp = {
+	texture = "gfx/interface/icons/generic_icons/mixed_icon_base.dds"
+	ai_selection = most_productive
+
+	production_methods = {
+		pm_rejob_uc_shao
+		pm_rejob_uc_gulag
+		pm_rejob_uc_oil
+		pm_rejob_uc_gas
+		pm_rejob_uc_stop
+	}
+}
+
+pmg_rejob_uc_pop = {
+	texture = "gfx/interface/icons/generic_icons/mixed_icon_base.dds"
+	ai_selection = most_productive
+
+	production_methods = {
+		pm_rejob_uc_labour
+		pm_rejob_uc_barbed_wire_fences
+		pm_rejob_uc_electric_fencing
+		pm_rejob_uc_upper
+	}
+}
+
+pmg_rejob_uc_migration = {
+	texture = "gfx/interface/icons/generic_icons/mixed_icon_base.dds"
+	ai_selection = most_productive
+
+	production_methods = {
+		pm_rejob_uc_local
+		pm_rejob_uc_country
+	}
+}

@@ -1,4 +1,4 @@
-pm_rejob_uc_shao = {
+﻿pm_rejob_uc_shao = {
 	texture = "gfx/interface/icons/production_method_icons/blister_steel_process.dds"
 
 	building_modifiers = {
@@ -8,19 +8,39 @@ pm_rejob_uc_shao = {
 		}
 		level_scaled = {
 		}
+		# ★ 2026-10-11 第九轮：按需求删除「生产项目」大类自带的死亡率修正。
+		#   死亡率只由「岗位构成」组的生产方式提供。
 		unscaled = {
 		}
 	}
 
-	unlocking_technologies = {
-		chemical_bleaching
-	}
+	# ★ 2026-10-12 第十轮（关键修复）★
+	#   本 PM 是 PMG pmg_rejob_uc_camp 的【第一个】PM，即引擎的默认 PM。
+	#   但建筑 building_rejob_unemployment_center 本身没有 unlocking_technologies
+	#   （开局即可建造），于是出现「建筑可建、默认 PM 却不可用」的矛盾状态，
+	#   导致新建建筑无法正常初始化 PM、面板 I/O 不跟随生产方式更新。
+	#
+	#   官方文档（游戏自带）common/production_methods/production_methods.md：
+	#     is_default = yes/no  # is this the default pm for its group?
+	#                          # if no pm in a group is designated as the default,
+	#                          # the first pm is considered the default.
+	#
+	#   香草实证：197 个 PMG 中 193 个的第一个 PM 都不需要科技；
+	#   仅有的 4 个例外（化工/汽车/军械/发电厂）其建筑本身也需对应科技才能建造。
+	#
+	#   修法：移除科技要求，使默认 PM 与建筑同步可用。
+	#
+	# ★ 2026-10-14 第 3 步：删除冗余的显式 is_default ★
+	#   本 PM 已是 PMG pmg_rejob_uc_camp 的【第一个】，按上面官方规则
+	#   「组内无人标 default 时，第一个 PM 即默认」，显式标记完全冗余。
+	#   删除后行为不变，回归香草写法 —— 香草 365 个 PM 中仅 9 个标了
+	#   is_default，且都用于「覆盖非第一个 PM」的场景。
+	# is_default = yes
 
-	state_modifiers = {
-		unscaled = {
-			state_mortality_mult = 4
-		}
-	}
+	# 原科技要求（已按第十轮修复移除）：
+	# unlocking_technologies = {
+	# 	chemical_bleaching
+	# }
 }
 
 pm_rejob_uc_gulag = {
@@ -34,13 +54,8 @@ pm_rejob_uc_gulag = {
 		}
 		level_scaled = {
 		}
+		# ★ 2026-10-11 第九轮：删除生产项目大类自带的死亡率修正。
 		unscaled = {
-		}
-	}
-
-	state_modifiers = {
-		unscaled = {
-			state_mortality_mult = 4
 		}
 	}
 }
@@ -54,9 +69,17 @@ pm_rejob_uc_oil = {
 			goods_input_electricity_add = 150
 			goods_input_engines_add = 25
 			goods_output_oil_add = 2000
+			# ★ 2026-10-18【v2 方案】让石油 PM 自己声明橡胶产出。
+			#   原因（实测）：建筑只产出【其生产方式声明的货物】。
+			#   仅靠静态修正的 goods_output_rubber_add 不会产生实际橡胶，
+			#   因为建筑压根没有「橡胶产出」这一项可被修正缩放。
+			#   基础值 2000 与石油等量；比例由 goods_output_*_mult 修正调节，
+			#   且因写在 workforce_scaled 内，天然随「建筑等级 × 就业率」缩放。
+			goods_output_rubber_add = 2000
 		}
 		level_scaled = {
 		}
+		# ★ 2026-10-11 第九轮：删除生产项目大类自带的死亡率修正。
 		unscaled = {
 		}
 	}
@@ -65,59 +88,31 @@ pm_rejob_uc_oil = {
 
 	unlocking_technologies = {
 	}
-
-	state_modifiers = {
-		unscaled = {
-			state_mortality_mult = 4
-		}
-	}
 }
 
+# pm_rejob_uc_gas —— 「化肥生产」
+#   ★ 2026-10-11 第九轮（按需求改）：
+#     1) 由「化肥投入」改名为「化肥生产」；
+#     2) 生产构成改为：投入 50 电力 + 150 煤炭，产出 1000 化肥；
+#     3) 删除自带的死亡率修正（生产项目大类不再提供死亡率）。
 pm_rejob_uc_gas = {
 	texture = "gfx/interface/icons/mobilization_options/chemical_weapons.dds"
-
-	building_modifiers = {
-		workforce_scaled = {
-			goods_input_fertilizer_add = 200
-		}
-		level_scaled = {
-		}
-		unscaled = {
-		}
-	}
 
 	unlocking_technologies = {
 		nitrogen_fixation
 	}
 
-	state_modifiers = {
-		unscaled = {
-			state_mortality_mult = 400
-		}
-	}
-}
-
-pm_rejob_uc_gasking = {
-	texture = "gfx/interface/icons/production_method_icons/chemical_weapons_specialists.dds"
+	required_input_goods = electricity
 
 	building_modifiers = {
 		workforce_scaled = {
-			goods_input_engines_add = 100
-			goods_input_fertilizer_add = 2000
+			goods_input_electricity_add = 50
+			goods_input_coal_add = 150
+			goods_output_fertilizer_add = 1000
 		}
 		level_scaled = {
 		}
 		unscaled = {
-		}
-	}
-
-	unlocking_technologies = {
-		chemical_warfare
-	}
-
-	state_modifiers = {
-		unscaled = {
-			state_mortality_mult = 9999999
 		}
 	}
 }
@@ -150,6 +145,17 @@ pm_rejob_uc_stop = {
 pm_rejob_uc_labour = {
 	texture = "gfx/interface/icons/production_method_icons/no_luxury_clothes.dds"
 
+	# ★ 2026-10-12 第十轮（关键修复）★
+	#   本 PM 是 PMG pmg_rejob_uc_pop 的【第一个】PM，即引擎的默认 PM。
+	#   原带 unlocking_technologies = { central_archives }（era_2），
+	#   而建筑本身开局即可建造 → 「建筑可建、默认 PM 不可用」，
+	#   导致新建建筑无法正常初始化 PM。详见 pm_rejob_uc_shao 处的完整说明。
+	# ★ 2026-10-14 第 3 步：删除冗余 is_default（本 PM 已是组内第一个）。
+	# is_default = yes
+
+	# ★ 第十轮：移除 central_archives 科技要求（原在文件末尾，见下）
+	#   默认 PM 必须与建筑同步可用，否则新建建筑 PM 初始化失败。
+
 	building_modifiers = {
 		workforce_scaled = {
 			goods_input_wood_add = 20
@@ -158,19 +164,9 @@ pm_rejob_uc_labour = {
 		level_scaled = {
 			building_employment_laborers_add = 100000
 		}
+		# ★ 需求 1a：按职业的建筑级死亡率修正。
 		unscaled = {
-		}
-	}
-
-	unlocking_technologies = {
-		central_archives
-	}
-
-	state_modifiers = {
-		workforce_scaled = {
-		}
-		unscaled = {
-			state_mortality_mult = 1
+			building_laborers_mortality_mult = 1
 		}
 	}
 }
@@ -190,15 +186,9 @@ pm_rejob_uc_barbed_wire_fences = {
 		level_scaled = {
 			building_employment_laborers_add = 200000
 		}
+		# ★ 需求 1a：按职业的建筑级死亡率修正。
 		unscaled = {
-		}
-	}
-
-	state_modifiers = {
-		workforce_scaled = {
-		}
-		unscaled = {
-			state_mortality_mult = 2
+			building_laborers_mortality_mult = 2
 		}
 	}
 }
@@ -215,15 +205,9 @@ pm_rejob_uc_electric_fencing = {
 		level_scaled = {
 			building_employment_laborers_add = 400000
 		}
+		# ★ 需求 1a：按职业的建筑级死亡率修正。
 		unscaled = {
-		}
-	}
-
-	state_modifiers = {
-		workforce_scaled = {
-		}
-		unscaled = {
-			state_mortality_mult = 4
+			building_laborers_mortality_mult = 4
 		}
 	}
 

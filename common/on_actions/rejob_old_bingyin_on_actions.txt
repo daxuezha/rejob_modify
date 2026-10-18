@@ -1,0 +1,58 @@
+﻿# ============================================================================
+# 再就业中心（整合版）· 原 mod 的 on_action
+# ----------------------------------------------------------------------------
+# ★ 2026-10-11 第六轮修正（有日志硬证据）★
+#
+# 原写法是把 effect 直接挂在 vanilla 的 on_state_owner_change 上，
+# 导致两个问题：
+#   1) debug.log: There is more than one 'effect' defined using most recent
+#      —— vanilla 的 00_code_on_actions.txt:7131 已给该 on_action 定义了 effect，
+#         同名再定义 effect 会冲突，本 mod 的 effect 被静默丢弃。
+#   2) debug.log: PostValidate of effect 'remove_building' returned false
+#      —— building_naval_base 在游戏里根本不存在（05_military.txt 里
+#         只有 building_naval_fortification / building_naval_administration /
+#         building_naval_logistics_center）。
+#
+# 修正做法（与本 mod 的 rejob_management_on_actions.txt 一致）：
+#   用官方支持的 on_actions 列表追加机制，把逻辑放进一个「新名字」的
+#   on_action 里，再挂到 on_state_owner_change 的 on_actions 列表中。
+#   这样既不覆盖 vanilla，也不会冲突。
+# ============================================================================
+
+on_state_owner_change = {
+	on_actions = {
+		rejob_old_bingyin_state_owner_change
+	}
+}
+
+rejob_old_bingyin_state_owner_change = {
+	effect = {
+		if = {
+			limit = {
+				owner = {
+					is_player = yes
+				}
+				is_incorporated = no
+			}
+			if = {
+				limit = {
+					has_building = building_barrack
+				}
+				remove_building = building_barrack
+			}
+			if = {
+				limit = {
+					has_building = building_conscription_center
+				}
+				remove_building = building_conscription_center
+			}
+			# ★ 修正：building_naval_base 不存在，改为实际存在的海防要塞。
+			if = {
+				limit = {
+					has_building = building_naval_fortification
+				}
+				remove_building = building_naval_fortification
+			}
+		}
+	}
+}

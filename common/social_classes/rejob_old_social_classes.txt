@@ -1,0 +1,59 @@
+﻿# ============================================================================
+# 再就业中心（整合版）· 社会阶层（social_classes）
+# ----------------------------------------------------------------------------
+# ★ 2026-10-11 第六轮修正（有日志硬证据）★
+#   debug.log: Duplicated key upper_class/middle_class/lower_class will not be
+#              created from file: common/social_classes/rejob_old_social_classes.txt
+#
+#   原因：原 mod 的文件名就是 00_default.txt（与 vanilla 同名 → 整文件替换，
+#         所以能生效）。本整合版把文件名改成 rejob_old_social_classes.txt，
+#         于是变成「同名条目冲突」—— vanilla 的 00_default.txt 保留，
+#         本 mod 的定义被整体丢弃，导致 delicious 不在 lower_class 里。
+#
+#   修正：使用官方「数据库条目模式」REPLACE: 显式替换这三个条目
+#         （见 CWTools definition_injections.cwt）。
+#         三个条目在 vanilla 中均存在，故 REPLACE 不会报错。
+#
+#   与 vanilla 的差异：lower_class 额外允许 delicious（不可接触者），
+#   这是本 mod 的核心设定，必须确保生效。
+# ============================================================================
+
+REPLACE:upper_class = {
+	social_hierarchy = default_social_hierarchy
+	strata = upper
+
+	allowed_professions = {
+		aristocrats
+		capitalists
+	}
+}
+
+REPLACE:middle_class = {
+	social_hierarchy = default_social_hierarchy
+	strata = middle
+
+	allowed_professions = {
+		academics
+		bureaucrats
+		clergymen
+		engineers
+		farmers
+		officers
+		shopkeepers
+	}
+}
+
+REPLACE:lower_class = {
+	social_hierarchy = default_social_hierarchy
+	strata = lower
+
+	allowed_professions = {
+		clerks
+		laborers
+		machinists
+		peasants
+		slaves
+		soldiers
+		delicious
+	}
+}

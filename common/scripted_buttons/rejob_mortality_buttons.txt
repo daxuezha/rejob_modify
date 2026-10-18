@@ -1,0 +1,450 @@
+﻿# ============================================================================
+# 再就业中心（整合版）· 日志按钮
+# root = 国家（Country）
+# ----------------------------------------------------------------------------
+# 单位约定（重要，对应需求 5）：
+#   rejob_offset 使用 state_mortality_mult 的「原始修正单位」。
+#   该修正类型为 percent = yes，引擎显示时会 ×100 并加 % 号，
+#   因此变量值 0.1 显示为「10%」，1.0 显示为「100%」。
+#   即：按钮上的 +10% 就是真的加 10%。
+#
+# 按钮分组（日志中按此顺序排列，见 journal_entries/rejob_management.txt）：
+#   A. 死亡率调节按钮（+1000% / +100% / +10% / -10% / -100% / -1000% / 重置）
+#   B. 两个「生效开关」按钮：分别决定调节值作用于哪座建筑
+#   C. 决议按钮：原 mod 的两个决议 + 本 mod 的迁移失业人口决议
+#
+# 调节按钮共用的可用性触发器 rejob_mortality_buttons_possible
+# 定义在 common/scripted_triggers/rejob_mortality_triggers.txt
+# ============================================================================
+
+
+# ===========================================================================
+# A. 死亡率调节按钮
+# ---------------------------------------------------------------------------
+# 单位：rejob_offset 使用 state_mortality_mult 的「原始修正单位」，
+#       按钮写 0.1 即代表 +10%（详见文件顶部单位约定）。
+# 下限保护：offset 不低于 -1000（即 -100000%），防止误操作后变量失控。
+# 合计下限：由脚本值的 min = 0 保证「合计不为负」（见 script_values）。
+# 说明：负调节值会被 rejob_uc_offset_effective 的
+#       min = -生产方式基准值 截断，最多只能抵消掉 PM 自带的死亡率，
+#       因此合计最低为 0，不会出现负死亡率。
+# ===========================================================================
+
+rejob_mortality_plus_1000 = {
+	name = "rejob_mortality_plus_1000"
+	desc = "rejob_mortality_plus_1000_desc"
+	possible = { rejob_mortality_buttons_possible = yes }
+
+	effect = {
+		change_variable = { name = rejob_offset  add = 10.0 }
+		rejob_refresh_mortality = yes
+	}
+}
+
+rejob_mortality_plus_100 = {
+	name = "rejob_mortality_plus_100"
+	desc = "rejob_mortality_plus_100_desc"
+	possible = { rejob_mortality_buttons_possible = yes }
+
+	effect = {
+		change_variable = { name = rejob_offset  add = 1.0 }
+		rejob_refresh_mortality = yes
+	}
+}
+
+rejob_mortality_plus_10 = {
+	name = "rejob_mortality_plus_10"
+	desc = "rejob_mortality_plus_10_desc"
+	possible = { rejob_mortality_buttons_possible = yes }
+
+	effect = {
+		change_variable = { name = rejob_offset  add = 0.1 }
+		rejob_refresh_mortality = yes
+	}
+}
+
+rejob_mortality_minus_10 = {
+	name = "rejob_mortality_minus_10"
+	desc = "rejob_mortality_minus_10_desc"
+	possible = { rejob_mortality_buttons_possible = yes }
+
+	effect = {
+		if = {
+			limit = { root.var:rejob_offset > -1000 }
+			change_variable = { name = rejob_offset  subtract = 0.1 }
+			rejob_refresh_mortality = yes
+		}
+	}
+}
+
+rejob_mortality_minus_100 = {
+	name = "rejob_mortality_minus_100"
+	desc = "rejob_mortality_minus_100_desc"
+	possible = { rejob_mortality_buttons_possible = yes }
+
+	effect = {
+		if = {
+			limit = { root.var:rejob_offset > -1000 }
+			change_variable = { name = rejob_offset  subtract = 1.0 }
+			rejob_refresh_mortality = yes
+		}
+	}
+}
+
+rejob_mortality_minus_1000 = {
+	name = "rejob_mortality_minus_1000"
+	desc = "rejob_mortality_minus_1000_desc"
+	possible = { rejob_mortality_buttons_possible = yes }
+
+	effect = {
+		if = {
+			limit = { root.var:rejob_offset > -1000 }
+			change_variable = { name = rejob_offset  subtract = 10.0 }
+			rejob_refresh_mortality = yes
+		}
+	}
+}
+
+rejob_mortality_reset = {
+	name = "rejob_mortality_reset"
+	desc = "rejob_mortality_reset_desc"
+	possible = {
+		OR = {
+			root.var:rejob_apply_uc = 1
+			root.var:rejob_apply_camp = 1
+		}
+	}
+
+	effect = {
+		rejob_reset_offset = yes
+	}
+}
+
+
+# ===========================================================================
+# B. 两个「生效开关」按钮（对应需求 6）
+# ---------------------------------------------------------------------------
+# 决定调节值作用于哪座建筑：
+#   两个都高亮 → 同时作用于「再就业中心」与「集中营」
+#   只高亮一个 → 只作用于那一座
+#   两个都灭   → 都不作用（调节值保留，但不产生任何修正）
+#
+# 开关只控制「修改动作是否生效」：
+#   点击开关不会改动 rejob_offset；
+#   对被关闭的建筑是撤销其动态修正，对被开启的建筑是重新施加，
+#   调节值本身保持原样 —— 符合需求中「修改动作的生效」而非「已修改数值变化」。
+#
+# possible 要求对应建筑存在，否则置灰（需求 7）。
+# ===========================================================================
+
+rejob_toggle_apply_uc = {
+	name = "rejob_toggle_apply_uc"
+	desc = "rejob_toggle_apply_uc_desc"
+	possible = {
+		rejob_has_unemployment_center = yes
+	}
+
+	# 开关为 1 时按钮高亮（OGAS 同款视觉反馈）
+	selected = {
+		root.var:rejob_apply_uc = 1
+	}
+
+	effect = {
+		if = {
+			limit = { root.var:rejob_apply_uc = 1 }
+			set_variable = { name = rejob_apply_uc  value = 0 }
+		}
+		else = {
+			set_variable = { name = rejob_apply_uc  value = 1 }
+		}
+		rejob_refresh_mortality = yes
+	}
+}
+
+rejob_toggle_apply_camp = {
+	name = "rejob_toggle_apply_camp"
+	desc = "rejob_toggle_apply_camp_desc"
+	possible = {
+		rejob_has_camp = yes
+	}
+
+	selected = {
+		root.var:rejob_apply_camp = 1
+	}
+
+	effect = {
+		if = {
+			limit = { root.var:rejob_apply_camp = 1 }
+			set_variable = { name = rejob_apply_camp  value = 0 }
+		}
+		else = {
+			set_variable = { name = rejob_apply_camp  value = 1 }
+		}
+		rejob_refresh_mortality = yes
+	}
+}
+
+
+
+# ===========================================================================
+# C. 决议按钮（对应需求 4）
+# ---------------------------------------------------------------------------
+# 把原来「决议面板」里的决议搬进日志，作为按钮呈现。
+# 各按钮的 possible 与对应决议的可用条件保持一致，条件不满足时自动置灰。
+# ===========================================================================
+
+# --- 原 mod 决议：066 号指令（不可接触者） ---
+rejob_btn_decision_066 = {
+	name = "rejob_btn_decision_066"
+	desc = "rejob_btn_decision_066_desc"
+	possible = {
+		owner = {
+			is_player = yes
+			NOT = { has_law = law_type:law_racial_segregation }
+			NOT = { has_law = law_type:law_cultural_exclusion }
+			NOT = { has_law = law_type:law_multicultural }
+			NOT = { has_law = law_type:law_subjecthood }
+		}
+		# 用 hidden_trigger 包裹，避免引擎为 any_scope_culture 里的
+		# cultural_acceptance_base 生成「依赖作用域」的本地化提示而刷 warning.log。
+		hidden_trigger = {
+			any_scope_culture = {
+				ROOT = {
+					cultural_acceptance_base = { target = prev  value < acceptance_status_4 }
+				}
+			}
+		}
+	}
+
+	effect = {
+		rejob_run_decision_066 = yes
+	}
+}
+
+# --- 原 mod 决议：067 号指令（冤假错案） ---
+rejob_btn_decision_067 = {
+	name = "rejob_btn_decision_067"
+	desc = "rejob_btn_decision_067_desc"
+	possible = {
+		# 同样用 hidden_trigger 包裹，避免 state_cultural_acceptance
+		# 在 any/every 触发器内生成作用域依赖的本地化提示。
+		#
+		# ★ 2026-10-14 修复：原写法在【触发器上下文】里用了 `limit = { ... }`
+		#   报错（error.3.log:2721 / debug.1.log:977）：
+		#     Error: "Unknown trigger type: limit, near line: 233"
+		#       in file: "common/scripted_buttons/rejob_mortality_buttons.txt" near line: 242
+		#   `limit` 是【效果上下文】的关键字，不能出现在 `possible` 这种触发器里。
+		#   香草实证：把 `limit` 写在 `any_scope_pop` 块内，全库 0 处；
+		#   正确写法是把条件【内联】直接写进 any_scope_pop 块内
+		#   （香草 00_decree.txt:170、01_character_ideologies.txt:4727 均如此）。
+		hidden_trigger = {
+			any_scope_pop = {
+				state = {
+					state_cultural_acceptance = {
+						target = PREV.culture
+						value > acceptance_status_3
+					}
+				}
+				is_pop_type = delicious
+			}
+		}
+	}
+
+	effect = {
+		rejob_run_decision_067 = yes
+	}
+}
+
+# --- 本 mod 决议：迁移失业人口至首都 ---
+rejob_btn_decision_migration = {
+	name = "rejob_btn_decision_migration"
+	desc = "rejob_btn_decision_migration_desc"
+	possible = {
+		rejob_noncapital_unemployed_population_estimate > 0
+	}
+
+	effect = {
+		trigger_event = {
+			id = rejob_migration.1
+			popup = yes
+		}
+	}
+}
+
+
+
+# ===========================================================================
+# ★ 2026-10-18【v2 方案】D. 石油 / 橡胶产出比例调节（0 = 纯橡胶，100 = 纯石油）
+# ---------------------------------------------------------------------------
+# 变量：rejob_oil_ratio，范围 [0, 100]，默认 100（= 纯石油，与改动前一致）
+# 单位：这是「百分比数值」，不是 mortality 那种修正单位 ——
+#       100 表示「100% 石油」，0 表示「100% 橡胶」。
+# 上下限：达到 0 或 100 后对应方向按钮置灰（见 rejob_oil_ratio_can_up/down），
+#         且 effect 内再做一次守卫（双保险，变量永不越界）。
+# 说明：ratio 是「石油占比」；实际产出的石油/橡胶比例由 _mult 修正实现，
+#       见 static_modifiers/rejob_mortality_modifiers.txt 的 4 个 _mult 容器。
+# ===========================================================================
+
+rejob_oil_plus_1 = {
+	name = "rejob_oil_plus_1"
+	desc = "rejob_oil_plus_1_desc"
+	possible = { rejob_oil_ratio_can_up = yes }
+
+	effect = {
+		# 首次点击时补齐变量（幂等），避免旧存档缺失变量
+		rejob_default_mortality = yes
+		if = {
+			limit = { has_variable = rejob_oil_ratio  root.var:rejob_oil_ratio < 100 }
+			change_variable = { name = rejob_oil_ratio  add = 1 }
+		}
+		rejob_refresh_oil_balance = yes
+	}
+}
+
+rejob_oil_plus_10 = {
+	name = "rejob_oil_plus_10"
+	desc = "rejob_oil_plus_10_desc"
+	possible = { rejob_oil_ratio_can_up = yes }
+
+	effect = {
+		# 首次点击时补齐变量（幂等），避免旧存档缺失变量
+		rejob_default_mortality = yes
+		if = {
+			limit = { has_variable = rejob_oil_ratio  root.var:rejob_oil_ratio < 100 }
+			change_variable = { name = rejob_oil_ratio  add = 10 }
+		}
+		rejob_refresh_oil_balance = yes
+	}
+}
+
+rejob_oil_plus_100 = {
+	name = "rejob_oil_plus_100"
+	desc = "rejob_oil_plus_100_desc"
+	possible = { rejob_oil_ratio_can_up = yes }
+
+	effect = {
+		# 首次点击时补齐变量（幂等），避免旧存档缺失变量
+		rejob_default_mortality = yes
+		if = {
+			limit = { has_variable = rejob_oil_ratio  root.var:rejob_oil_ratio < 100 }
+			change_variable = { name = rejob_oil_ratio  add = 100 }
+		}
+		rejob_refresh_oil_balance = yes
+	}
+}
+
+rejob_oil_minus_1 = {
+	name = "rejob_oil_minus_1"
+	desc = "rejob_oil_minus_1_desc"
+	possible = { rejob_oil_ratio_can_down = yes }
+
+	effect = {
+		# 首次点击时补齐变量（幂等），避免旧存档缺失变量
+		rejob_default_mortality = yes
+		if = {
+			limit = { has_variable = rejob_oil_ratio  root.var:rejob_oil_ratio > 0 }
+			change_variable = { name = rejob_oil_ratio  subtract = 1 }
+		}
+		rejob_refresh_oil_balance = yes
+	}
+}
+
+rejob_oil_minus_10 = {
+	name = "rejob_oil_minus_10"
+	desc = "rejob_oil_minus_10_desc"
+	possible = { rejob_oil_ratio_can_down = yes }
+
+	effect = {
+		# 首次点击时补齐变量（幂等），避免旧存档缺失变量
+		rejob_default_mortality = yes
+		if = {
+			limit = { has_variable = rejob_oil_ratio  root.var:rejob_oil_ratio > 0 }
+			change_variable = { name = rejob_oil_ratio  subtract = 10 }
+		}
+		rejob_refresh_oil_balance = yes
+	}
+}
+
+rejob_oil_minus_100 = {
+	name = "rejob_oil_minus_100"
+	desc = "rejob_oil_minus_100_desc"
+	possible = { rejob_oil_ratio_can_down = yes }
+
+	effect = {
+		# 首次点击时补齐变量（幂等），避免旧存档缺失变量
+		rejob_default_mortality = yes
+		if = {
+			limit = { has_variable = rejob_oil_ratio  root.var:rejob_oil_ratio > 0 }
+			change_variable = { name = rejob_oil_ratio  subtract = 100 }
+		}
+		rejob_refresh_oil_balance = yes
+	}
+}
+
+rejob_oil_reset = {
+	name = "rejob_oil_reset"
+	desc = "rejob_oil_reset_desc"
+	possible = { rejob_oil_buttons_possible = yes }
+
+	effect = {
+		set_variable = { name = rejob_oil_ratio  value = 100 }
+		rejob_refresh_oil_balance = yes
+	}
+}
+
+
+# ===========================================================================
+# ★ 2026-10-18【v2 方案】E. 产出比例的两个「生效开关」
+# ---------------------------------------------------------------------------
+# 与死亡率开关同构：决定比例修正作用于哪座建筑。
+#   · 只影响「当前选择石油生产方式」的建筑
+#   · 关闭时该建筑不受比例影响，但 ratio 本身保留
+# ===========================================================================
+
+rejob_toggle_apply_oil_uc = {
+	name = "rejob_toggle_apply_oil_uc"
+	desc = "rejob_toggle_apply_oil_uc_desc"
+	possible = {
+		rejob_has_unemployment_center = yes
+	}
+
+	selected = {
+		has_variable = rejob_apply_oil_uc
+		root.var:rejob_apply_oil_uc = 1
+	}
+
+	effect = {
+		if = {
+			limit = { has_variable = rejob_apply_oil_uc  root.var:rejob_apply_oil_uc = 1 }
+			set_variable = { name = rejob_apply_oil_uc  value = 0 }
+		}
+		else = {
+			set_variable = { name = rejob_apply_oil_uc  value = 1 }
+		}
+		rejob_refresh_oil_balance = yes
+	}
+}
+
+rejob_toggle_apply_oil_camp = {
+	name = "rejob_toggle_apply_oil_camp"
+	desc = "rejob_toggle_apply_oil_camp_desc"
+	possible = {
+		rejob_has_camp = yes
+	}
+
+	selected = {
+		has_variable = rejob_apply_oil_camp
+		root.var:rejob_apply_oil_camp = 1
+	}
+
+	effect = {
+		if = {
+			limit = { has_variable = rejob_apply_oil_camp  root.var:rejob_apply_oil_camp = 1 }
+			set_variable = { name = rejob_apply_oil_camp  value = 0 }
+		}
+		else = {
+			set_variable = { name = rejob_apply_oil_camp  value = 1 }
+		}
+		rejob_refresh_oil_balance = yes
+	}
+}

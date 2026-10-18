@@ -1,0 +1,87 @@
+﻿# ============================================================================
+# 再就业中心（整合版）· 原 mod 决议效果（供日志按钮调用）
+# root = 国家（Country）
+# ----------------------------------------------------------------------------
+# 原 mod 把 066 / 067 做成「决议」，本整合版改为日志按钮，
+# 因此把决议的 when_taken 内容原样搬到这里，逻辑与数值均未改动。
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# 066 号指令 —— 不可接触者
+#   原实现见 3266813717/common/decisions/Throw it in.txt:066_decision
+# ---------------------------------------------------------------------------
+rejob_run_decision_066 = {
+	change_infamy = 10
+	add_treasury = -50000
+
+	# 第一遍：把符合条件的人口改为不可接触者（delicious）
+	every_scope_pop = {
+		limit = {
+			total_size < 3000
+			state = {
+				state_cultural_acceptance = {
+					target = PREV.culture
+					value < acceptance_status_4
+				}
+			}
+		}
+		change_poptype = pop_type:delicious
+	}
+
+	# 第二遍：把同一批人口迁往首都
+	every_scope_pop = {
+		limit = {
+			total_size < 3000
+			state = {
+				state_cultural_acceptance = {
+					target = PREV.culture
+					value < acceptance_status_4
+				}
+			}
+		}
+		move_pop = root.capital
+	}
+
+	# 在首都建立一座「集中营」
+	capital = {
+		create_building = {
+			building = "building_gulag_logging"
+			level = 1
+			reserves = 1
+		}
+	}
+
+	# 首都不可接触者减少 1%
+	capital = {
+		kill_population_percent_in_state = {
+			percent = 1
+			pop_type = delicious
+		}
+	}
+}
+
+# ---------------------------------------------------------------------------
+# 067 号指令 —— 冤假错案
+#   原实现见 3266813717/common/decisions/Throw it in.txt:067_decision
+# ---------------------------------------------------------------------------
+rejob_run_decision_067 = {
+	add_treasury = -5000
+
+	every_scope_pop = {
+		limit = {
+			state = {
+				state_cultural_acceptance = {
+					target = PREV.culture
+					value > acceptance_status_3
+				}
+			}
+			is_pop_type = delicious
+		}
+		change_poptype = pop_type:laborers
+		set_pop_wealth = {
+			wealth_distribution = {
+				value = 10
+			}
+		}
+	}
+}

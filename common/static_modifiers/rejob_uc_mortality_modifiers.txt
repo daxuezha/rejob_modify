@@ -1,4 +1,0 @@
-﻿rejob_uc_mortality_dynamic = {
-	icon = gfx/interface/icons/timed_modifier_icons/modifier_fire_negative.dds
-	state_mortality_mult = 1
-}

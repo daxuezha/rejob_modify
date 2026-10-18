@@ -1,0 +1,82 @@
+﻿l_simp_chinese:
+
+ # ===========================================================================
+ # 死亡率动态修正容器（静态修正）的本地化
+ # ---------------------------------------------------------------------------
+ # ★ 关键规则（已用香草实证）：
+ #   静态修正（static_modifiers）的本地化 key 就是【修正名本身】，不加任何前缀。
+ #   例：香草 recently_conquered_state = { ... } → loc: recently_conquered_state: "最近被征服"
+ #   因此下面 4 个容器必须用裸名，否则建筑面板 / tooltip 会显示原始 ID。
+ # ===========================================================================
+
+ # --- 再就业中心：按职业的建筑级死亡率容器 ---
+ #   显示格式对齐香草 state_<职业>_mortality_mult：
+ #     state_laborers_mortality_mult: "$laborers$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]"
+ rejob_uc_mortality_laborers:0 "$laborers$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]"
+ rejob_uc_mortality_laborers_desc:0 "对在本建筑就业的$laborers$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚。"
+
+ rejob_uc_mortality_aristocrats:0 "$aristocrats$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]"
+ rejob_uc_mortality_aristocrats_desc:0 "对在本建筑就业的$aristocrats$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚。"
+
+ rejob_uc_mortality_capitalists:0 "$capitalists$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]"
+ rejob_uc_mortality_capitalists_desc:0 "对在本建筑就业的$capitalists$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚。"
+
+ # --- 集中营：州级不可接触者死亡率容器 ---
+ rejob_camp_mortality_dynamic:0 "$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]"
+ rejob_camp_mortality_dynamic_desc:0 "对所在州$delicious$[Concept('concept_pop_growth', '$concept_pop_growth_mortality$')]的增益或惩罚。"
+
+
+ # ===========================================================================
+ # 建筑组名（★ 关键修复 ★）
+ # ---------------------------------------------------------------------------
+ # ★ 铁证：香草 69 个建筑组，loc 里就有 72 条 bg_* 裸名条目，一一对应。
+ #     bg_government: "政府建筑"
+ #   即：建筑组名的 loc key 就是【组名本身】，【不是】 building_group_<组名>。
+ #
+ #   本 mod 原先误用了 building_group_rejob_unemployment_center，
+ #   而 building_group_<X> 是【修正类型】的命名空间，
+ #   所以建筑面板右上角会显示原始 ID（rejob_unemployment_center）。
+ # ===========================================================================
+
+ # --- 再就业中心的建筑组 ---
+ rejob_unemployment_center:0 "再就业中心"
+
+ # --- 集中营所属的建筑组（沿用原模组组名）---
+ gulag_industry:0 "集中营"
+
+ # 注：building_group_gulag_industry_standard_of_living_add 已在
+ #     rejob_old_gulag_l_simp_chinese.yml 中定义，此处不重复。
+
+
+
+ # ===========================================================================
+ # ★ 2026-10-18【v2 方案】石油 / 橡胶产出倍率容器（静态修正）的本地化
+ # ---------------------------------------------------------------------------
+ # 规则同上方：静态修正的 loc key = 修正名本身（裸名）。
+ # 显示格式对齐香草的 goods_output_*_mult 提示（产出百分比）。
+ # ===========================================================================
+ rejob_uc_oil_mult:0 "@oil!油产出"
+ rejob_uc_oil_mult_desc:0 "对建筑产出的@oil!油数量的增益或惩罚。"
+
+ rejob_uc_rubber_mult:0 "@rubber!橡胶产出"
+ rejob_uc_rubber_mult_desc:0 "对建筑产出的@rubber!橡胶数量的增益或惩罚。"
+
+ rejob_camp_oil_mult:0 "@oil!油产出"
+ rejob_camp_oil_mult_desc:0 "对建筑产出的@oil!油数量的增益或惩罚。"
+
+ rejob_camp_rubber_mult:0 "@rubber!橡胶产出"
+ rejob_camp_rubber_mult_desc:0 "对建筑产出的@rubber!橡胶数量的增益或惩罚。"
+
+ # ===========================================================================
+ # ★ 2026-10-18 补充：修正类型 goods_output_rubber_mult 的本地化
+ # ---------------------------------------------------------------------------
+ # 香草只登记了 goods_output_oil_mult，【没有】rubber。
+ # 本 mod 在 modifier_type_definitions/rejob_old_mortality.txt 中自行注册了
+ # goods_output_rubber_mult，因此必须自己补上显示名，否则建筑面板会显示原始 ID。
+ #
+ # 写法与香草 goods_output_oil_mult 完全对齐（见 modifiers_l_simp_chinese.yml:1762）：
+ #   goods_output_oil_mult: "建筑@oil!油产出"
+ #   goods_output_oil_mult_desc: "对建筑产出的@oil!油数量的增益或惩罚"
+ # ===========================================================================
+ goods_output_rubber_mult:0 "建筑@rubber!橡胶产出"
+ goods_output_rubber_mult_desc:0 "对建筑产出的@rubber!橡胶数量的增益或惩罚"

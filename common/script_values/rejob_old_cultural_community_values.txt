@@ -1,0 +1,277 @@
+﻿# ============================================================================
+# 再就业中心（整合版）· 文化社区生成权重（含「大迁徙」法令加成）
+# ----------------------------------------------------------------------------
+# ★ 2026-10-11 第六轮修正（有硬证据）★
+#   vanilla 已在 common/script_values/cultural_community_values.txt 定义了
+#   同名脚本值 cultural_community_creation_weight。
+#   本 mod 用不同文件名（rejob_old_cultural_community_values.txt）重新定义，
+#   会被判定为重复条目而【整体丢弃】，导致「大迁徙」法令的加成永远不生效。
+#
+#   修正：使用官方「数据库条目模式」REPLACE: 显式替换
+#         （见 CWTools definition_injections.cwt）。
+#
+#   与原 mod 的差异（保留原 mod 的设计意图）：
+#     · 新增 has_decree = 大迁徙 → add = 1（让该法令真正推动移民）
+#     · 文化接纳度过低时 multiply = 0（禁止生成），原 mod 即如此
+# ============================================================================
+
+REPLACE:cultural_community_creation_weight = {
+
+	# Conditions that block
+
+	if = {
+		limit = {
+			OR = {
+				devastation >= 5
+				turmoil >= 6
+				is_isolated_from_market = yes
+			}
+		}
+		add = 0
+	}
+	else = {
+		add = 0.001
+
+		# Conditions that add
+		if = {
+			limit = {
+				# ★ 修正：原写 has_port = yes —— 官方无此触发器，
+				#   正确名为 has_port_state（州作用域）。
+				has_port_state = yes
+			}
+			add = 0.001
+		}
+
+		if = {
+			limit = {
+				has_decree = decree_greener_grass_campaign
+			}
+			add = 0.005
+		}
+		
+		if = {
+			limit = {
+				has_decree = 大迁徙
+			}
+			add = 1
+		}
+
+		if = {
+			limit = {
+				on_river = yes
+			}
+			add = 0.001
+		}
+
+		if = {
+			limit = {
+				is_coastal = yes
+			}
+			add = 0.001
+		}
+
+		if = {
+			limit = {
+				is_under_colonization = yes
+			}
+			add = 0.005
+		}
+
+		if = {
+			limit = {
+				free_arable_land > 20
+			}
+			add = 0.001
+		}
+
+		if = {
+
+			limit = {
+				root = {
+					has_building = building_trade_center
+				}
+			}
+			add = 0.001
+		}
+
+		# Positive Conditions that Multiply
+
+		if = {
+			limit = {
+				is_capital = yes
+			}
+			multiply = 1.1
+		}
+
+		if = {
+			limit = {
+				owner = {
+					country_has_primary_culture = scope:culture
+				}
+			}
+			multiply = 2.5
+		}
+
+		if = {
+			limit = {
+				OR = {
+					has_state_trait = state_trait_natural_harbors
+					has_state_trait = state_trait_good_soils
+					has_state_trait = state_trait_london_docklands
+					has_state_trait = state_trait_new_york_harbor
+					has_state_trait = state_trait_halifax_harbor
+					has_state_trait = state_trait_newark_harbor
+				}
+
+			}
+			multiply = 1.2
+		}
+
+		# Negative Conditions that multiply
+
+		if = {
+			limit = {
+				has_decree = decree_violent_suppression
+			}
+			multiply = 0.5
+		}
+
+		if = {
+			limit = {
+				devastation >= 0.2
+			}
+			multiply = 0.5
+		}
+
+		if = {
+			limit = {
+				turmoil >= 0.3
+			}
+			multiply = 0.5
+		}
+
+		if = {
+			limit = {
+				state_unemployment_rate >= 0.1
+			}
+			multiply = 0.5
+		}
+
+		if = {
+			limit = {
+				owner = {
+					is_at_war = yes
+				}
+			}
+			multiply = 0.5
+		}
+
+		if = {
+			limit = {
+				state_has_goods_shortage = yes
+			}
+			multiply = 0.8
+		}
+
+		multiply = market_access
+
+		if = {
+			limit = {
+				is_in_revolt = yes
+			}
+			multiply = 0.5
+		}
+
+		if = {
+			limit = {
+				is_slave_state = yes
+				scope:culture = {
+					NOT = { shares_heritage_trait_group_with_any_primary_culture = root.owner }
+				}
+			}
+			multiply = 0.1
+		}
+
+		if = {
+			limit = {
+				has_state_trait = state_trait_malaria
+				root.owner = {
+					NOT = {
+						has_technology_researched = quinine
+					}
+				}
+			}
+			multiply = 0.5
+		}
+
+		if = {
+			limit = {
+				has_state_trait = state_trait_severe_malaria
+				root.owner = {
+					NOT = {
+						has_technology_researched = malaria_prevention
+					}
+				}
+			}
+			multiply = 0.3
+		}
+
+		if = {
+			limit = {
+				root.owner = {
+					cultural_acceptance_base = { target = scope:culture value < acceptance_status_2 }
+				}
+			}
+			multiply = 0
+		}
+		else_if = {
+			limit = {
+				root.owner = {
+					cultural_acceptance_base = { target = scope:culture value < acceptance_status_3 }
+				}
+			}
+			multiply = 0
+		}
+		else_if = {
+			limit = {
+				root.owner = {
+					cultural_acceptance_base = { target = scope:culture value < acceptance_status_4 }
+				}
+			}
+			multiply = 0
+		}
+		else_if = {
+			limit = {
+				root.owner = {
+					cultural_acceptance_base = { target = scope:culture value < acceptance_status_5 }
+				}
+			}
+			multiply = 0.7
+		}
+
+		if = {
+			limit = {
+				num_cultural_communities >=5
+			}
+			multiply = 0.5
+		}
+
+		if = {
+			limit = {
+				num_cultural_communities >=10
+			}
+			multiply = 0.2
+		}
+
+		if = {
+			limit = {
+				num_cultural_communities >=15
+			}
+			multiply = 0.1
+		}
+	}
+
+	# Bounds:
+	max = define:NPops|CULTURAL_COMMUNITY_MAX_PER_MONTH_CHANCE
+	min = 0
+}

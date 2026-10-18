@@ -1,0 +1,142 @@
+﻿# ============================================================================
+# 再就业中心（整合版）· 死亡率调节 · 动态静态修正（容器）
+# ----------------------------------------------------------------------------
+# 说明：
+#   这两个静态修正只是「容器」。真正生效的数值由脚本效果
+#   add_modifier = { name = ... multiplier = <脚本值> } 提供。
+#   容器内的基准值必须为 1（而非 0），否则 multiplier 乘 0 会得 0。
+#
+# ★ 2026-10-11 第六轮重做（本文件是需求 1 的核心）★
+#
+#   需求 1：
+#     a) 生产方式（PM）的死亡率必须改成「对应职业」的死亡率修正；
+#     b) 动态调节也必须「按职业」；
+#     c) 只能影响「招募进该建筑的人」的死亡率，不能影响全州。
+#
+#   为什么必须用【建筑级 building_<职业>_mortality_mult】：
+#     · state_<职业>_mortality_mult 作用域是【州】——
+#       再就业中心雇佣的是 laborers / aristocrats / capitalists，
+#       这些职业在州里到处都是。若挂州级修正，全州的劳工/资本家
+#       死亡率都会被改，严重超范围。
+#     · building_<职业>_mortality_mult 作用域是【建筑】——
+#       只作用于「在该建筑就业的那部分人口」，正好满足需求 c。
+#     · 官方原生就在用这套机制：
+#         common/production_methods/03_mines.txt:145
+#           building_laborers_mortality_mult = 0.3
+#           building_machinists_mortality_mult = 0.2
+#           building_engineers_mortality_mult = 0.1
+#       即「煤矿里的劳工死亡率 +30%」——正是我们要的语义。
+#
+#   ★ 关于第四轮「建筑级方案」为何失败（避免重蹈覆辙）★
+#     第四轮失败不是「建筑级」这个方向错了，而是三个具体缺陷：
+#       1) 清理由 limit 里带 is_building_type 守卫 —— 建筑一拆，
+#          limit 永远匹配不上，remove_modifier 永不执行。
+#          （正确做法见 effects 文件：无条件遍历 + has_modifier 守卫）
+#       2) 用了 state_clerks / state_bureaucrats / state_engineers
+#          这类「官方脚本未登记」的修正类型 → Unknown modifier type，
+#          直接污染 modifier 数据库（game.log: Invalid category prefix）。
+#       3) 建筑组写了非法 lens = government（官方无此 lens），
+#          导致建筑浏览器分组异常。
+#     本文件与 effects / building_groups 已同时修掉这三点。
+#
+#   本容器使用的修正类型（全部经核对为官方已登记，可安全使用）：
+#     building_laborers_mortality_mult     99_todo_sort_into_other_files.txt
+#     building_aristocrats_mortality_mult  本 mod 定义（vanilla 未登记）
+#     building_capitalists_mortality_mult  本 mod 定义（vanilla 未登记）
+#     state_delicious_mortality_mult       本 mod 定义（delicious 为自定义人口）
+#   三者与 state_mortality_mult 同构（decimals / color=bad / percent=yes）。
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# 新建筑「再就业中心」的死亡率补偿容器（建筑级 · 按职业）
+# ---------------------------------------------------------------------------
+# ★ 2026-10-11 第七轮：由「1 个容器塞 3 个职业」拆成「3 个独立容器」★
+#
+#   为什么必须拆：
+#     建筑实际雇佣哪些职业，由【岗位构成组 pmg_rejob_uc_pop 的生产方式】决定：
+#       pm_rejob_uc_labour / _barbed_wire_fences / _electric_fencing
+#           → 只雇佣 laborers
+#       pm_rejob_uc_upper
+#           → 只雇佣 aristocrats + capitalists
+#     若仍用「一个容器塞 3 个职业」，建筑面板会把 3 个职业的修正
+#     全部列出来，与该建筑实际雇佣的职业不符（显示不准）。
+#
+#     拆成 3 个独立容器后，脚本效果只给「该建筑当前生产方式真正雇佣的
+#     职业」挂对应容器，于是：
+#       · 建筑面板显示 = 实际雇佣的职业（不再有多余条目）
+#       · 切换生产方式时，由 on_production_method_changed 自动重算
+#         （见 scripted_effects/rejob_mortality_effects.txt）
+#
+#   注意：容器内基准值必须为 1（而非 0），否则 multiplier 乘 0 会得 0。
+rejob_uc_mortality_laborers = {
+	icon = gfx/interface/icons/timed_modifier_icons/modifier_fire_negative.dds
+	building_laborers_mortality_mult = 1
+}
+
+rejob_uc_mortality_aristocrats = {
+	icon = gfx/interface/icons/timed_modifier_icons/modifier_fire_negative.dds
+	building_aristocrats_mortality_mult = 1
+}
+
+rejob_uc_mortality_capitalists = {
+	icon = gfx/interface/icons/timed_modifier_icons/modifier_fire_negative.dds
+	building_capitalists_mortality_mult = 1
+}
+
+# 旧建筑「集中营」的死亡率补偿容器（州级 · 仅不可接触者）
+#   delicious 是本 mod 自定义的人口类型，只有「州级」修正类型可用
+#   （无 building_delicious_mortality_mult），故保持州级。
+#   由于 delicious 只会被集中营雇佣（且原 mod 一直如此、工作正常），
+#   实际效果等同「只作用于营内人群」。
+rejob_camp_mortality_dynamic = {
+	icon = gfx/interface/icons/timed_modifier_icons/modifier_fire_negative.dds
+	state_delicious_mortality_mult = 1
+}
+
+# ============================================================================
+# ★ 2026-10-18 【v2 方案】石油 / 橡胶产出比例 —— 倍率容器（正式）
+# ----------------------------------------------------------------------------
+# 原理：
+#   石油 PM 现在同时声明「2000 石油」与「2000 橡胶」（写在 workforce_scaled，
+#   故天然随「建筑等级 × 就业率」缩放）。
+#   本组容器用 _mult 按比例缩放两者：
+#     _mult 语义 = ×(1 + 值)
+#   设 f = ratio/100（f=1 纯石油，f=0 纯橡胶）：
+#     石油倍率 = f − 1   ⇒ 实际产出 = 2000 · 等级 · 就业率 · f
+#     橡胶倍率 = −f      ⇒ 实际产出 = 2000 · 等级 · 就业率 · (1 − f)
+#
+#   · ratio = 100 ⇒ 石油 ×1、橡胶 ×0 ⇒ 纯石油（与改动前一致，零回归）
+#   · ratio = 0   ⇒ 石油 ×0、橡胶 ×1 ⇒ 纯橡胶
+#   · ratio = 50  ⇒ 各 1000（× 等级 × 就业率）
+#
+#   ★ 容器内基准值必须为 1（而非 0），否则 multiplier 乘 0 得 0。
+#
+# 为什么石油可用香草的 oil_mult，橡胶却要【本 mod 注册】rubber_mult：
+#   香草为 oil 登记了 goods_output_oil_mult，但【没有】rubber。
+#   本 mod 已在 modifier_type_definitions/rejob_old_mortality.txt
+#   注册 goods_output_rubber_mult（有第三方 mod 2889925770/2962076252 成功先例）。
+# ============================================================================
+
+# 再就业中心 · 石油倍率
+rejob_uc_oil_mult = {
+	icon = gfx/interface/icons/timed_modifier_icons/modifier_gear_positive.dds
+	goods_output_oil_mult = 1
+}
+
+# 再就业中心 · 橡胶倍率
+rejob_uc_rubber_mult = {
+	icon = gfx/interface/icons/timed_modifier_icons/modifier_gear_positive.dds
+	goods_output_rubber_mult = 1
+}
+
+# 集中营 · 石油倍率
+rejob_camp_oil_mult = {
+	icon = gfx/interface/icons/timed_modifier_icons/modifier_gear_positive.dds
+	goods_output_oil_mult = 1
+}
+
+# 集中营 · 橡胶倍率
+rejob_camp_rubber_mult = {
+	icon = gfx/interface/icons/timed_modifier_icons/modifier_gear_positive.dds
+	goods_output_rubber_mult = 1
+}

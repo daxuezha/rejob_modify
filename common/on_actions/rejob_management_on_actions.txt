@@ -1,0 +1,131 @@
+﻿# ============================================================================
+# 再就业中心（整合版）· on_actions
+# ----------------------------------------------------------------------------
+# 作用：只要境内出现「再就业中心」或「集中营」，且尚未开启管理日志，
+#       就在每月脉冲时自动把日志补上（决议之外的双保险）。
+# 注意：这是「新定义」的 on_action 名，不会覆盖 vanilla 的 on_actions 文件，
+#       而是在 on_monthly_pulse_country 的 on_actions 列表里追加一项。
+# ============================================================================
+
+on_monthly_pulse_country = {
+	on_actions = {
+		rejob_management_monthly
+	}
+}
+
+rejob_management_monthly = {
+	effect = {
+		if = {
+			limit = {
+				NOT = { has_journal_entry = je_rejob_management }
+				rejob_has_any_center = yes
+			}
+			add_journal_entry = {
+				type = je_rejob_management
+			}
+		}
+		
+		#   ★ 2026-10-18 自愈：补齐缺失变量
+		#   日志的 immediate 只在【首次创建】时执行，读档不会重跑；
+		#   因此新版本新增的变量在旧存档里始终不存在，会导致
+		#   「Failed to fetch variable」报错，并使比例按钮恒为置灰。
+		#   rejob_default_mortality 对每个变量都有 NOT has_variable 守卫，
+		#   可安全地每月重复调用（幂等），最多 1 个月自动补齐。
+		if = {
+			limit = { has_journal_entry = je_rejob_management }
+			rejob_default_mortality = yes
+		}
+	}
+}
+
+# ============================================================================
+# ★ 2026-10-11 第七轮新增：生产方式变更时同步刷新死亡率修正 ★
+# ----------------------------------------------------------------------------
+# 官方钩子（有据可查）：
+#   common/on_actions/00_code_on_actions.txt:4426
+#     # Root = Building
+#     on_production_method_changed = { effect = { ... } }
+#   CWTools on_actions.cwt:633-636 亦标注：
+#     ### Root = Building
+#     ## replace_scopes = { this = building root = building }
+#     ## event_type = scopeless
+#     on_production_method_changed
+#
+# 为什么需要它：
+#   再就业中心「雇佣哪些职业」由岗位构成组 pmg_rejob_uc_pop 的生产方式决定：
+#     pm_rejob_uc_labour / _barbed_wire_fences / _electric_fencing → laborers
+#     pm_rejob_uc_upper                                            → aristocrats + capitalists
+#   玩家切换生产方式后，雇佣职业随之改变，必须重挂对应的死亡率容器，
+#   否则会出现「面板仍显示旧职业」或「新职业没有修正」的问题。
+#
+# 追加写法（官方文档 _on_actions.md:117-128 明确给出）：
+#   不能直接给已有 effect 的 on_action 追加 effect 块（会冲突），
+#   而应在 on_actions 列表里挂一个「新名字」的 on_action。
+# ============================================================================
+
+on_production_method_changed = {
+	on_actions = {
+		rejob_on_production_method_changed
+	}
+}
+
+rejob_on_production_method_changed = {
+	effect = {
+		if = {
+			limit = {
+				is_building_group = rejob_unemployment_center
+			}
+			rejob_refresh_uc_building_mortality = yes
+		}
+	}
+}
+
+# ============================================================================
+# ★ 2026-10-11 第八轮新增：州级残留自愈（针对「集中营」的州级修正）★
+# ----------------------------------------------------------------------------
+# 背景：两座建筑的修正作用域不同，拆除后的行为也不同 ——
+#
+#   ① 再就业中心 —— 【建筑级】building_<职业>_mortality_mult
+#      修正挂在【建筑对象】上。建筑被拆除时对象销毁，
+#      修正随之消失，【不会残留】在州里。
+#      （第五轮之所以会残留，是因为那时用的是州级；第六轮起已改建筑级。）
+#
+#   ② 集中营 —— 【州级】state_delicious_mortality_mult
+#      delicious 是本 mod 自定义人口，引擎【没有】building_delicious_mortality_mult
+#      （原模组作者试过并全部注释掉，见 3266813717 的 gulag_method_group.txt）。
+#      州级修正挂在【州对象】上 —— 州不会因为拆掉建筑而消失，
+#      因此修正会【残留】，直到下一次刷新（点任意按钮）才被清掉。
+#
+# 修法：
+#   用官方的 on_monthly_pulse_state（Root = State，
+#   见 common/on_actions/00_code_on_actions.txt:2038）每月检查本州：
+#   若本州已无集中营、却仍挂着州级死亡率修正，就清掉它。
+#   这样拆除后最多 1 个月自动干净，无需玩家手动点按钮。
+#
+#   官方原生就在 on_monthly_pulse_state 里追加：
+#     00_code_on_actions.txt:2038
+#       on_monthly_pulse_state = { on_actions = { colonial_claims_check } ... }
+# ============================================================================
+
+on_monthly_pulse_state = {
+	on_actions = {
+		rejob_state_monthly_mortality_check
+	}
+}
+
+rejob_state_monthly_mortality_check = {
+	effect = {
+		# 本州已无集中营 → 清掉残留的州级死亡率修正
+		if = {
+			limit = {
+				has_modifier = rejob_camp_mortality_dynamic
+				NOT = {
+					any_scope_building = {
+						is_building_type = building_gulag_logging
+					}
+				}
+			}
+			remove_modifier = rejob_camp_mortality_dynamic
+		}
+	}
+}

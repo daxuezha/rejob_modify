@@ -1,0 +1,88 @@
+﻿l_simp_chinese:
+
+ # ===========================================================================
+ # 日志条目：失业人群管理中心
+ # ===========================================================================
+ je_rejob_management:0 "失业人群管理中心"
+ je_rejob_management_reason:0 "统一管理「再就业中心」与「集中营」的死亡率修正。\n\n#bold 再就业中心 —— 建筑级 · 跟随生产方式#!：修正挂在建筑本身，且只作用于该建筑#bold 当前生产方式真正雇佣的职业#!（岗位构成选择「基础再就业岗位」等时是劳工；选择「专业阶层岗位」时是地主与资本家），不会波及同州其他建筑的同类职业。切换生产方式后修正会自动同步。\n\n#bold 集中营 —— 州级 · 不可接触者#!：不可接触者（delicious）是只有集中营才会雇佣的特殊人口类型，因此该修正实际只作用于营内人群。\n\n调节值以「百分点」计（+10 即 +10%）。两个生效开关分别决定调节值作用于哪座建筑；两个都关闭时，调节值保留但不产生任何修正。\n\n建筑面板上显示的死亡率 = 当前生产方式自带的死亡率 + 本面板的调节值；#bold 合计最低为 0#!，不会出现负死亡率。"
+ rejob_management_status:0 "调节值：#v [SelectLocalization(GreaterThan_CFixedPoint(Scope.GetCountry.MakeScope.Var('rejob_offset').GetValue, '(CFixedPoint)0'), 'rejob_sign_plus', 'rejob_sign_plain')][Scope.GetCountry.MakeScope.Var('rejob_offset').GetValue|0%]#!\n\n#bold 再就业中心#!（建筑级 · 跟随生产方式）\n[SelectLocalization(EqualTo_CFixedPoint(Scope.GetCountry.MakeScope.ScriptValue('rejob_uc_total_min_country'), Scope.GetCountry.MakeScope.ScriptValue('rejob_uc_total_country')), 'rejob_uc_line_single', 'rejob_uc_line_range')]\n\n#bold 集中营#!（州级 · 不可接触者）\n[SelectLocalization(EqualTo_CFixedPoint(Scope.GetCountry.MakeScope.ScriptValue('rejob_camp_total_min_country'), Scope.GetCountry.MakeScope.ScriptValue('rejob_camp_total_country')), 'rejob_camp_line_single', 'rejob_camp_line_range')]\n\n#bold 石油 / 橡胶产出比例#!（选择「石油加工」的建筑）\n[SelectLocalization(EqualTo_CFixedPoint(Scope.GetCountry.MakeScope.Var('rejob_apply_oil_uc').GetValue, '(CFixedPoint)1'), 'rejob_oil_line_uc', 'rejob_oil_line_off')]\n\n#italic $rejob_scope_note$#!"
+ rejob_oil_line_uc:0 "　　石油比例：#v [Scope.GetCountry.MakeScope.Var('rejob_oil_ratio').GetValue|0]#! / 100　（0 = 纯@rubber!橡胶，100 = 纯@oil!油；同时对集中营生效时也取此值）"
+ rejob_oil_line_off:0 "　　石油比例：#v [Scope.GetCountry.MakeScope.Var('rejob_oil_ratio').GetValue|0]#! / 100　（未开启「产出比例」开关时此值不产生任何效果）"
+ rejob_sign_plus:0 "+"
+ rejob_sign_plain:0 ""
+ rejob_uc_line_single:0 "　　生产方式：#v [Scope.GetCountry.MakeScope.ScriptValue('rejob_uc_pm_base_country')|0%]#!　合计：#v [Scope.GetCountry.MakeScope.ScriptValue('rejob_uc_total_country')|0%]#!"
+ rejob_uc_line_range:0 "　　各建筑生产方式不一致，合计范围：#v [Scope.GetCountry.MakeScope.ScriptValue('rejob_uc_total_min_country')|0%]#! ~ #v [Scope.GetCountry.MakeScope.ScriptValue('rejob_uc_total_country')|0%]#!"
+ rejob_camp_line_single:0 "　　生产方式：#v [Scope.GetCountry.MakeScope.ScriptValue('rejob_camp_pm_base_country')|0%]#!　合计：#v [Scope.GetCountry.MakeScope.ScriptValue('rejob_camp_total_country')|0%]#!"
+ rejob_camp_line_range:0 "　　各建筑生产方式不一致，合计范围：#v [Scope.GetCountry.MakeScope.ScriptValue('rejob_camp_total_min_country')|0%]#! ~ #v [Scope.GetCountry.MakeScope.ScriptValue('rejob_camp_total_country')|0%]#!"
+ rejob_scope_note:0 "合计 = 生产方式自带值 + 本面板调节值，最低为 0。"
+
+ # ===========================================================================
+ # A. 死亡率调节按钮（单位：百分点）
+ # ===========================================================================
+ rejob_mortality_plus_1000:0 "+1000%"
+ rejob_mortality_plus_1000_desc:0 "将死亡率调节值增加 1000 个百分点（+1000%）。"
+ rejob_mortality_plus_100:0 "+100%"
+ rejob_mortality_plus_100_desc:0 "将死亡率调节值增加 100 个百分点（+100%）。"
+ rejob_mortality_plus_10:0 "+10%"
+ rejob_mortality_plus_10_desc:0 "将死亡率调节值增加 10 个百分点（+10%）。"
+ rejob_mortality_minus_10:0 "-10%"
+ rejob_mortality_minus_10_desc:0 "将死亡率调节值减少 10 个百分点（-10%）。"
+ rejob_mortality_minus_100:0 "-100%"
+ rejob_mortality_minus_100_desc:0 "将死亡率调节值减少 100 个百分点（-100%）。"
+ rejob_mortality_minus_1000:0 "-1000%"
+ rejob_mortality_minus_1000_desc:0 "将死亡率调节值减少 1000 个百分点（-1000%）。"
+ rejob_mortality_reset:0 "重置调节值"
+ rejob_mortality_reset_desc:0 "把调节值归零，并撤销两座建筑的动态修正。不会改变两个生效开关的状态。"
+
+ # ===========================================================================
+ # B. 生效开关
+ # ===========================================================================
+ rejob_toggle_apply_uc:0 "调节作用于：再就业中心"
+ rejob_toggle_apply_uc_desc:0 "开启后，调节值会作用于「再就业中心」。\n\n#bold 作用范围#!：修正挂在#bold 建筑本身#!，且只作用于该建筑#bold 当前生产方式真正雇佣的职业#!（选「基础再就业岗位」等 → 劳工；选「专业阶层岗位」→ 地主与资本家），不会波及同州其他建筑的同类职业；切换生产方式后修正会自动同步。\n\n关闭时该建筑不受调节值影响，但#bold 调节值本身不会被清空#!（便于随时再开启）。默认关闭。"
+ rejob_toggle_apply_camp:0 "调节作用于：集中营"
+ rejob_toggle_apply_camp_desc:0 "开启后，调节值会作用于「集中营」。该修正作用于所在州的#bold 不可接触者（delicious）#!—— 由于只有集中营会雇佣这类人口，实际效果等同于只影响营内人群。关闭时该建筑不受调节值影响，但调节值本身不会被清空。默认关闭。"
+
+ # ===========================================================================
+ # C. 决议按钮
+ # ===========================================================================
+ rejob_btn_decision_066:0 "66号指令 - 不可接触者"
+ rejob_btn_decision_066_desc:0 "花费 50,000 国库与 10 恶名：把国内文化接纳地位低于 4、且人口规模小于 3,000 的群体转为不可接触者并集中送往首都，在首都建立一座集中营，随后清除首都 1% 的不可接触者。"
+ rejob_btn_decision_067:0 "67号指令 - 冤假错案"
+ rejob_btn_decision_067_desc:0 "花费 5,000 国库：让所在州文化接纳地位高于 3 的不可接触者恢复为劳动者，并给予其财富分布 10 的安置。"
+ rejob_btn_decision_migration:0 "迁移失业人口至首都"
+ rejob_btn_decision_migration_desc:0 "打开迁移批次选择。只有失业且非不可接触者的人口会被处理。可用门槛按非首都州总人口 × 失业率估算，不代表精确的合格人数。"
+
+ # ===========================================================================
+ # 引导决议
+ # ===========================================================================
+ rejob_open_management_decision:0 "设立失业人群管理中心"
+ rejob_open_management_decision_desc:0 "在日志中开启「失业人群管理中心」。境内存在再就业中心或集中营时可用。\n若该日志已经在运行，再次点击会把它重置为全新状态（调节值归零、两个生效开关关闭）。"
+
+
+ # ===========================================================================
+ # ★ 2026-10-18【v2 方案】D. 石油 / 橡胶产出比例调节按钮
+ # ---------------------------------------------------------------------------
+ # ratio 是「石油占比」的百分比数值（0~100），不是 mortality 那种修正单位。
+ # ===========================================================================
+ rejob_oil_plus_1:0 "+1"
+ rejob_oil_plus_1_desc:0 "石油占比 +1（更偏@oil!油）。到 100 后按钮置灰。"
+ rejob_oil_plus_10:0 "+10"
+ rejob_oil_plus_10_desc:0 "石油占比 +10（更偏@oil!油）。到 100 后按钮置灰。"
+ rejob_oil_plus_100:0 "+100"
+ rejob_oil_plus_100_desc:0 "石油占比 +100（直接拉满，纯@oil!油产出）。到 100 后按钮置灰。"
+ rejob_oil_minus_1:0 "-1"
+ rejob_oil_minus_1_desc:0 "石油占比 -1（更偏@rubber!橡胶）。到 0 后按钮置灰。"
+ rejob_oil_minus_10:0 "-10"
+ rejob_oil_minus_10_desc:0 "石油占比 -10（更偏@rubber!橡胶）。到 0 后按钮置灰。"
+ rejob_oil_minus_100:0 "-100"
+ rejob_oil_minus_100_desc:0 "石油占比 -100（直接归零，纯@rubber!橡胶产出）。到 0 后按钮置灰。"
+ rejob_oil_reset:0 "重置产出比例"
+ rejob_oil_reset_desc:0 "把石油占比恢复为 100（纯@oil!油），等同生产方式原始产出。不会改变两个「产出比例」开关的状态。"
+
+ # ===========================================================================
+ # ★ 2026-10-18【v2 方案】E. 产出比例生效开关
+ # ===========================================================================
+ rejob_toggle_apply_oil_uc:0 "产出比例作用于：再就业中心"
+ rejob_toggle_apply_oil_uc_desc:0 "开启后，石油 / 橡胶产出比例会作用于「再就业中心」。\n\n#bold 机制#!：「$pm_rejob_uc_oil$」生产方式本身同时产出 2000 @oil!油 与 2000 @rubber!橡胶，比例调节只是按 0~100 的数值缩放这两项产出，因此实际产出会随建筑等级与就业率同步缩放。\n\n仅当该建筑选择「$pm_rejob_uc_oil$」生产方式时生效（其它生产方式既无 @oil!油 也无 @rubber!橡胶产出）。\n\n关闭时该建筑保持生产方式原始产出（等同比例 = 100）。默认关闭。"
+ rejob_toggle_apply_oil_camp:0 "产出比例作用于：集中营"
+ rejob_toggle_apply_oil_camp_desc:0 "开启后，石油 / 橡胶产出比例会作用于「集中营」。\n\n#bold 机制#!：与再就业中心相同 —— 由「$pm_gulag_oil$」生产方式同时产出 @oil!油 与 @rubber!橡胶，比例调节只缩放这两项。\n\n仅当该建筑选择「$pm_gulag_oil$」生产方式时生效。\n\n关闭时该建筑保持生产方式原始产出。默认关闭。"

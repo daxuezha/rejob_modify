@@ -1,0 +1,24 @@
+﻿# ============================================================================
+# 再就业中心（整合版）· 不可接触者（delicious）衣物需求触发器
+# ----------------------------------------------------------------------------
+# ★ 2026-10-11 第六轮修正（有日志硬证据）★
+#   debug.log: Duplicated key slaves_clothes_pop_trigger will not be created
+#              from file: common/scripted_triggers/rejob_old_delicious_clothes.txt:1
+#
+#   原因：vanilla 已在 common/scripted_triggers/00_clothes_triggers.txt:2270
+#         定义了同名触发器。同名定义会被判定为重复并【丢弃本 mod 的版本】，
+#         导致 delicious 人口永远无法通过衣物需求检查。
+#
+#   修正：使用官方「数据库条目模式」REPLACE: 显式替换该条目
+#         （见 CWTools definition_injections.cwt：REPLACE / TRY_REPLACE /
+#           INJECT / INJECT_OR_CREATE / REPLACE_OR_CREATE）。
+#         REPLACE 要求原条目必须存在 —— vanilla 确实存在，故用 REPLACE。
+# ============================================================================
+
+REPLACE:slaves_clothes_pop_trigger = {
+     exists = scope:pop
+     scope:pop = {
+		is_pop_type = slaves
+		is_pop_type = delicious
+     }
+}

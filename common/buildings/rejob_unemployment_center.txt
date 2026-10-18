@@ -1,5 +1,5 @@
-building_gulag_unemployment_center = {
-	building_group = gulag_unemployment_center
+﻿building_rejob_unemployment_center = {
+	building_group = rejob_unemployment_center
 	icon = "gfx/interface/icons/building_icons/logging_camp.dds"
 	city_type = city
 	levels_per_mesh = 5
@@ -15,9 +15,9 @@ building_gulag_unemployment_center = {
 	}
 
 	production_method_groups = {
-		rejob_uc_camp
-		rejob_uc_pop
-		rejob_uc_migration
+		pmg_rejob_uc_camp
+		pmg_rejob_uc_pop
+		pmg_rejob_uc_migration
 	}
 
 	required_construction = construction_cost_low

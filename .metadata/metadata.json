@@ -1,15 +1,18 @@
 {
-  "name": "再就业中心2.0 - 个人优化补丁",
+  "name": "再就业中心 整合版",
   "id": "com.github.daxuezha.rejob_modify",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "game_id": "victoria3",
   "supported_game_version": "1.13.*",
-  "short_description": "面向“再就业中心2.0”的个人优化补丁：调整建筑限制与生产方式效果；需与原模组同时启用。",
+  "short_description": "再就业中心与集中营的整合版：含两座建筑、不可接触者人口、相关法令与决议按钮，并提供死亡率统一调节面板。本模组已自包含全部内容，无需其他模组即可运行。",
   "tags": [
-    "Gameplay"
+    "Gameplay",
+    "Characters",
+    "Events"
   ],
   "relationships": [],
   "game_custom_data": {
     "multiplayer_synchronized" : true
   }
 }
+

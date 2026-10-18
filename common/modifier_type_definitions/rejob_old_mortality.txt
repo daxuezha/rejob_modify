@@ -1,0 +1,256 @@
+﻿building_aristocrats_mortality_mult={
+	decimals=1
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_capitalists_mortality_mult={
+	decimals=1
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_group_bg_construction_delicious_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_group_bg_agriculture_delicious_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_group_bg_ranching_delicious_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_group_bg_plantations_delicious_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_group_bg_mining_delicious_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_group_bg_manufacturing_delicious_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_group_bg_mining_delicious_standard_of_living_add={
+	decimals=1
+	color=good
+	game_data={
+		ai_value=0
+	}
+}
+
+building_group_bg_manufacturing_delicious_standard_of_living_add={
+	decimals=1
+	color=good
+	game_data={
+		ai_value=0
+	}
+}
+
+country_delicious_pol_str_mult={
+	decimals=0
+	color=neutral
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+state_delicious_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_employment_delicious_add={
+	decimals=0
+	color=neutral
+	game_data={
+		ai_value=0
+	}
+}
+
+building_delicious_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_group_bg_light_industry_delicious_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_group_bg_heavy_industry_delicious_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_group_bg_whaling_delicious_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_group_bg_fishing_delicious_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_group_bg_oil_extraction_delicious_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+building_group_bg_infrastructure_delicious_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+country_delicious_voting_power_add={
+	decimals=0
+	color=neutral
+	game_data={
+		ai_value=0
+	}
+}
+building_group_gulag_industry_standard_of_living_add={
+	decimals=1
+	color=good
+	game_data={
+		ai_value=0
+	}
+}
+
+# ============================================================================
+# ★ 2026-10-11 第六轮：补注册「代码已知但脚本未定义」的按职业州级死亡率修正 ★
+# ----------------------------------------------------------------------------
+# 背景（有日志硬证据）：
+#   引擎报错 Unknown modifier type: state_clerks/capitalists/engineers_mortality_mult
+#   位于 common/static_modifiers/rejob_mortality_modifiers.txt。
+#   原因：这些键在【代码】里是存在的（引擎按 state_<职业>_mortality_mult 解析），
+#         但官方脚本只给 8 个职业写了 modifier_type_definitions，
+#         其余职业（clerks / bureaucrats / capitalists / engineers 等）
+#         在【脚本修正数据库】里没有登记 → 使用时被判定为 Unknown。
+#   修法：在本文件补登记这些类型（与官方 state_laborers_mortality_mult 完全同构）。
+#   参考官方定义：common/modifier_type_definitions/99_todo_sort_into_other_files.txt:3109
+#
+#   注意：只有「本 mod 实际会用到」的键才需要补登记。
+#
+#   ★ 2026-10-11 第六轮补充说明 ★
+#     本轮把再就业中心改回【建筑级】修正，实际使用的是：
+#       building_laborers_mortality_mult    —— 官方已登记，无需补
+#       building_aristocrats_mortality_mult —— 本文件第 1 行，已登记
+#       building_capitalists_mortality_mult —— 本文件第 10 行，已登记
+#     因此下面的 state_capitalists_mortality_mult 当前【未被使用】，
+#     仅作为「若将来需要州级资本家死亡率修正」的备用登记保留。
+#     （它不会造成任何副作用：官方同样大量登记了未使用的修正类型。）
+# ============================================================================
+
+state_capitalists_mortality_mult={
+	decimals=0
+	color=bad
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}
+
+# ============================================================================
+# ★ 2026-10-18 【v2 方案】注册「橡胶产出倍率」修正类型 ★
+# ----------------------------------------------------------------------------
+# 为什么需要注册：
+#   香草只为部分货物登记了 goods_output_<货物>_mult（有 oil / tools / fabric …，
+#   但【没有】rubber）。而本方案需要「按比例缩放橡胶产出」，必须用到该类型。
+#
+# 机制依据（引擎报错原文）：
+#   "Unknown modifier type: X. It is either invalid, or a potential
+#    **dynamic modifier type definition missing from the database**"
+#   ⇒ 引擎按后缀模式动态解析 goods_output_<货物>_mult / _add，
+#     **只需在脚本侧注册一次即可使用**。
+#
+# 第三方实证（两个 mod 已成功注册香草没有的同类类型）：
+#   · 2889925770: goods_output_wood_mult / _grain_mult / _meat_mult / _fine_art_mult
+#   · 2962076252: goods_output_grain_mult / _meat_mult / _fish_mult
+#
+# 定义照抄香草 goods_output_oil_mult（01_building_modifier_types.txt:1942），
+# 保证 decimals / color / percent 三项与官方语义一致。
+#
+# 倍率语义：修正值 V 表示 ×(1 + V)，故 −1 即 ×0（归零）、0 即 ×1（不变）。
+# ============================================================================
+goods_output_rubber_mult={
+	decimals=1
+	color=good
+	percent=yes
+	game_data={
+		ai_value=0
+	}
+}

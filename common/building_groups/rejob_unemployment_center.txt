@@ -1,0 +1,16 @@
+﻿rejob_unemployment_center = {
+	parent_group = bg_government
+	# ★ 修正：原写 lens = government，但官方合法 lens 只有
+	#   development / mine / trade / special / agriculture / fishing /
+	#   forestry / heavy_industry / light_industry / plantation。
+	#   government 不是合法 lens（vanilla 全库无 lens = government）。
+	#   非法 lens 会让建筑浏览器分组异常，进而影响所有建筑的面板渲染。
+	lens = development
+	urbanization = 20
+	infrastructure_usage_per_level = 10
+	is_government_funded = no
+	cash_reserves_max = 1000
+	subsidized = yes
+	foreign_investment_ai_factor = 0
+	hires_unemployed_only = yes
+}

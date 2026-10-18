@@ -1,4 +1,4 @@
-pm_Auschviking_shao = {
+﻿pm_Auschviking_shao = {
 	texture = "gfx/interface/icons/production_method_icons/blister_steel_process.dds"
 
 	building_modifiers = {
@@ -8,20 +8,25 @@ pm_Auschviking_shao = {
 		}
 		level_scaled = {
 		}
+		# ★ 2026-10-11 第九轮：按需求删除「生产项目」大类自带的死亡率修正。
+		#   死亡率只由「关押人群」组的生产方式提供。
 		unscaled = {
-#			building_delicious_mortality_mult = 10
 		}
 	}
 
-	unlocking_technologies = {
-		chemical_bleaching
-	}
+	# ★ 2026-10-12 第十轮（关键修复）★
+	#   本 PM 是 PMG gulag_camp 的【第一个】PM，即引擎的默认 PM。
+	#   原带 unlocking_technologies = { chemical_bleaching }（era_2），
+	#   而 building_gulag_logging 开局即可建造 → 「建筑可建、默认 PM 不可用」，
+	#   导致新建建筑无法正常初始化 PM、面板 I/O 不跟随生产方式更新。
+	#   详见 rejob_unemployment_center_pm.txt 的 pm_rejob_uc_shao 处完整说明。
+	# ★ 2026-10-14 第 3 步：删除冗余 is_default（本 PM 已是组内第一个）。
+	# is_default = yes
 
-	state_modifiers = {
-		unscaled = {
-			state_delicious_mortality_mult = 4
-		}
-	}
+	# 原科技要求（已按第十轮修复移除）：
+	# unlocking_technologies = {
+	# 	chemical_bleaching
+	# }
 }
 
 pm_gulag = {
@@ -36,15 +41,9 @@ pm_gulag = {
 		level_scaled = {
 		}
 		unscaled = {
-#			building_delicious_mortality_mult = 10
 		}
 	}
 
-	state_modifiers = {
-		unscaled = {
-			state_delicious_mortality_mult = 4
-		}
-	}
 }
 
 pm_gulag_oil = {
@@ -56,11 +55,13 @@ pm_gulag_oil = {
 		goods_input_electricity_add = 150
 		goods_input_engines_add = 25
 		goods_output_oil_add = 2000
+		# ★ 2026-10-18【v2 方案】让石油 PM 自己声明橡胶产出（与再就业中心同理）。
+		goods_output_rubber_add = 2000
 		}
 		level_scaled = {
 		}
+		# ★ 2026-10-11 第九轮：删除生产项目大类自带的死亡率修正。
 		unscaled = {
-#			building_delicious_mortality_mult = 10
 		}
 	}
 
@@ -69,69 +70,36 @@ pm_gulag_oil = {
 	unlocking_technologies = {
 #		electrical_capacitors
 	}
-
-	state_modifiers = {
-		unscaled = {
-			state_delicious_mortality_mult = 4
-		}
-	}
 }
 
+# pm_Auschviking_gas —— 「集中营:化肥生产」
+#   ★ 2026-10-11 第九轮（按需求改）：
+#     1) 由「集中营:环保产业」改名为「集中营:化肥生产」；
+#     2) 生产构成改为：投入 50 电力 + 150 煤炭，产出 1000 化肥；
+#     3) 删除自带的死亡率修正（生产项目大类不再提供死亡率）。
 pm_Auschviking_gas = {
 	texture = "gfx/interface/icons/mobilization_options/chemical_weapons.dds"
-
-	building_modifiers = {
-		workforce_scaled = {
-		goods_input_fertilizer_add = 200
-		}
-		level_scaled = {
-		}
-		unscaled = {
-#			building_delicious_mortality_mult = 4000
-		}
-	}
 
 	unlocking_technologies = {
 		nitrogen_fixation
 	}
 
-	state_modifiers = {
-		unscaled = {
-			state_delicious_mortality_mult = 400
-		}
-	}
-}
-
-pm_Auschviking_gasking = {
-	texture = "gfx/interface/icons/production_method_icons/chemical_weapons_specialists.dds"
+	required_input_goods = electricity
 
 	building_modifiers = {
 		workforce_scaled = {
-		goods_input_engines_add = 100
-		goods_input_fertilizer_add = 2000
+			goods_input_electricity_add = 50
+			goods_input_coal_add = 150
+			goods_output_fertilizer_add = 1000
 		}
 		level_scaled = {
-			#building_employment_laborers_add = 1000000
-			#building_employment_machinists_add = 1000
-			#building_employment_engineers_add = 1000
-			#building_employment_soldiers_add = 100
-			#building_employment_officers_add = 100
-			#building_employment_bureaucrats_add = 100
 		}
 		unscaled = {
-		}
-	}
-
-	unlocking_technologies = {
-		chemical_warfare
-	}
-
-	state_modifiers = {
-		unscaled = {
-			state_mortality_mult = 9999999
 		}
 	}
 }
+
+# ★ 2026-10-11 第九轮：pm_Auschviking_gasking（集中营:终极解决）已按需求删除。
 
 pm_Auschviking_barbed_wire_fences = {
 	texture = "gfx/interface/icons/production_method_icons/barbed_wire_fencing.dds"
@@ -196,6 +164,19 @@ pm_Auschviking_electric_fencing = {
 pm_gulag_labour = {
 	texture = "gfx/interface/icons/production_method_icons/no_luxury_clothes.dds"
 
+	# ★ 2026-10-12 第十轮（关键修复）★
+	#   本 PM 是 PMG gulag_pop 的【第一个】PM，即引擎的默认 PM。
+	#   原带 unlocking_technologies = { central_archives }（era_2），
+	#   而建筑开局即可建造 → 「建筑可建、默认 PM 不可用」。
+	#   详见 rejob_unemployment_center_pm.txt 的 pm_rejob_uc_shao 处完整说明。
+	# ★ 2026-10-14 第 3 步：删除冗余 is_default（本 PM 已是组内第一个）。
+	# is_default = yes
+
+	# 原科技要求（已按第十轮修复移除）：
+	# unlocking_technologies = {
+	# 	central_archives
+	# }
+
 	building_modifiers = {
 		workforce_scaled = {
 		goods_input_wood_add = 20
@@ -209,9 +190,8 @@ pm_gulag_labour = {
 		}
 	}
 
-	unlocking_technologies = {
-		central_archives
-	}
+	# ★ 第十轮：移除 central_archives 科技要求（原在文件末尾）
+	#   默认 PM 必须与建筑同步可用，否则新建建筑 PM 初始化失败。
 
 	state_modifiers = {
 		workforce_scaled = {
@@ -239,8 +219,10 @@ pm_gulag_upper = {
 			building_aristocrats_mortality_mult = 40
 			building_capitalists_mortality_mult = 40
 		}
-		workforce_scaled = {
-		}
+		# ★ 修正：此处原有一个空的重复 workforce_scaled 块，
+		#   与上面的 workforce_scaled 键重名。PDX 解析器对同名键
+		#   以后者为准，会把上面的 goods_output_* 全部覆盖为空，
+		#   导致该生产方式的产出凭空消失。故删除。
 	}
 
 	state_modifiers = {
@@ -272,7 +254,6 @@ pm_gulag_local = {
 		workforce_scaled = {
 		}
 		unscaled = {
-			state_migration_pull_mult = -99
 # 			state_birth_rate_mult = -10
 #			state_assimilation_mult = -1000
 		}
@@ -296,6 +277,7 @@ pm_gulag_country = {
 		level_scaled = {
 		}
 		unscaled = {
+			state_migration_pull_mult = -99
 		}
 	}
 
@@ -307,6 +289,42 @@ pm_gulag_country = {
 	}
 	
 	country_modifiers = {
+		workforce_scaled = {
+		}
+		unscaled = {
+			country_infamy_generation_mult = 0.1
+			country_infamy_decay_mult = -0.1
+		}
+	}
+}
+
+# ---------------------------------------------------------------------------
+# pm_gulag_stop —— 「停止运转」
+# 原模组定义（3266813717/common/production_methods/gulag_method_group.txt）。
+# 历史补丁曾将其作为「与原模组完全一致的重复项」删除，但本整合版已不再依赖
+# 原模组，故必须补回，否则 gulag_camp 生产方式组会出现断链引用。
+# ---------------------------------------------------------------------------
+pm_gulag_stop = {
+	texture = "gfx/interface/icons/production_method_icons/professional_bureaucrats.dds"
+
+	building_modifiers = {
+		workforce_scaled = {
+			goods_input_transportation_add = -200
+			goods_output_clothes_add = -1500
+			goods_output_luxury_clothes_add = -1000
+			goods_output_gold_add = -1000
+			goods_output_fine_art_add = -1000
+		}
+		level_scaled = {
+			building_employment_delicious_add = -100000
+			building_employment_aristocrats_add = -50000
+			building_employment_capitalists_add = -50000
+		}
+		unscaled = {
+		}
+	}
+
+	state_modifiers = {
 		workforce_scaled = {
 		}
 	}

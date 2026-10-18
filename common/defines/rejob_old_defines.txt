@@ -1,0 +1,5 @@
+﻿NPops = {
+
+	MIGRATION_MAX_PER_STATE_INFRASTRUCTURE = 50									# No more than this amount of people can move from or to a state in a single week (scales with infrastructure)
+
+}
