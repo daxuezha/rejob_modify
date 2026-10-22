@@ -73,7 +73,7 @@ rejob_uc_pm_base_upper = {
 # 本建筑基准值（显示用：取两种口径中的较大者，保证下限足够低）
 rejob_uc_pm_base_building = {
 	value = rejob_uc_pm_base_laborers
-	max = rejob_uc_pm_base_upper
+	min = rejob_uc_pm_base_upper
 }
 
 # 各职业基准值取负（用作各自的下限）
@@ -110,19 +110,19 @@ rejob_uc_pm_base_country = {
 	value = 0
 	if = {
 		limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_labour } } }
-		max = 1
+		min = 1
 	}
 	if = {
 		limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_barbed_wire_fences } } }
-		max = 2
+		min = 2
 	}
 	if = {
 		limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_electric_fencing } } }
-		max = 4
+		min = 4
 	}
 	if = {
 		limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_upper } } }
-		max = 40
+		min = 40
 	}
 }
 
@@ -137,19 +137,19 @@ rejob_uc_pm_base_min_country = {
 		value = 9999999
 		if = {
 			limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_labour } } }
-			min = 1
+			max = 1
 		}
 		if = {
 			limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_barbed_wire_fences } } }
-			min = 2
+			max = 2
 		}
 		if = {
 			limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_electric_fencing } } }
-			min = 4
+			max = 4
 		}
 		if = {
 			limit = { any_scope_state = { any_scope_building = { is_building_group = rejob_unemployment_center has_active_production_method = pm_rejob_uc_upper } } }
-			min = 40
+			max = 40
 		}
 	}
 }
@@ -231,6 +231,7 @@ rejob_camp_pm_base_in_state = {
 	if = { limit = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_gulag_labour } }                    add = 1 }
 	if = { limit = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_barbed_wire_fences } }  add = 2 }
 	if = { limit = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_electric_fencing } }    add = 4 }
+	if = { limit = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_gulag_upper } }                     add = 40 }
 }
 
 # 国家视角基准值
@@ -243,15 +244,19 @@ rejob_camp_pm_base_country = {
 	value = 0
 	if = {
 		limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_gulag_labour } } }
-		max = 1
+		min = 1
 	}
 	if = {
 		limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_barbed_wire_fences } } }
-		max = 2
+		min = 2
 	}
 	if = {
 		limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_electric_fencing } } }
-		max = 4
+		min = 4
+	}
+	if = {
+		limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_gulag_upper } } }
+		min = 40
 	}
 }
 
@@ -265,15 +270,19 @@ rejob_camp_pm_base_min_country = {
 		value = 9999999
 		if = {
 			limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_gulag_labour } } }
-			min = 1
+			max = 1
 		}
 		if = {
 			limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_barbed_wire_fences } } }
-			min = 2
+			max = 2
 		}
 		if = {
 			limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_electric_fencing } } }
-			min = 4
+			max = 4
+		}
+		if = {
+			limit = { any_scope_state = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_gulag_upper } } }
+			max = 40
 		}
 	}
 }
@@ -328,5 +337,9 @@ rejob_camp_offset_effective = {
 	else_if = {
 		limit = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_Auschviking_electric_fencing } }
 		min = -4
+	}
+	else_if = {
+		limit = { any_scope_building = { is_building_type = building_gulag_logging has_active_production_method = pm_gulag_upper } }
+		min = -40
 	}
 }
